@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(ulid())
+  email     String    @unique
+  name      String?
+  image     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  files     File[]
+  messages  Message[]
+}
+
+enum UploadStatus {
+  PROCESSING
+  FAILED
+  SUCCESS
+}
+
+model File {
+  id           String       @id @default(uuid())
+  name         String
+  url          String
+  userId       String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  uploadStatus UploadStatus @default(PROCESSING)
+  user         User         @relation(fields: [userId], references: [id])
+  messages     Message[]
+}
+
+enum Role {
+  USER
+  SYSTEM
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  text      String
+  isUser    Boolean
+  fileId    String
+  role      Role
+  content   String
+  userId    String?
+  file      File     @relation(fields: [fileId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

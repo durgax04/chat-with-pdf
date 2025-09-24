@@ -1,0 +1,45 @@
+{
+  "name": "hugg-embbeding",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.883.0",
+    "@aws-sdk/client-s3": "^3.879.0",
+    "@aws-sdk/s3-request-presigner": "^3.884.0",
+    "@huggingface/inference": "4",
+    "@langchain/aws": "^0.1.15",
+    "@langchain/community": "^0.3.55",
+    "@langchain/core": "^0.3.75",
+    "@langchain/openai": "^0.6.11",
+    "@langchain/pinecone": "^0.2.0",
+    "@langchain/textsplitters": "^0.1.0",
+    "@pinecone-database/pinecone": "^5.1.2",
+    "@prisma/client": "6.15.0",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.2",
+    "next-auth": "^4.24.11",
+    "pdf-parse": "^1.1.1",
+    "pdf-parse.js": "link:pdf-parse/lib/pdf-parse.js",
+    "pdf2json": "^3.2.0",
+    "pdfjs-dist": "^5.4.149",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hot-toast": "^2.6.0",
+    "tesseract.js": "^6.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "prisma": "6.15.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
