@@ -4,14 +4,10 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { Loader2, LogOut } from "lucide-react";
 import Form from "./Form";
+import { Session } from "next-auth";
 
 interface DashboardProps {
-  session: {
-    id: string;
-    name?: string;
-    image?: string;
-    email?: string;
-  };
+  session: Session
 }
 
 const Dashboard = ({ session }: DashboardProps) => {
@@ -27,7 +23,7 @@ const Dashboard = ({ session }: DashboardProps) => {
       <div className="flex flex-col justify-center items-center max-w-5xl mx-auto space-y-10">
         <div className="flex justify-center gap-10 items-center border-b border-white/20 pb-4">
           <h1 className="text-4xl font-bold tracking-tight">
-            Welcome, {session.name ?? "Guest"}
+            Welcome, {session.user.name ?? "Guest"}
           </h1>
 
           <button
