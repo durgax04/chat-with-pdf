@@ -7,7 +7,7 @@ import Form from "./Form";
 import { Session } from "next-auth";
 
 interface DashboardProps {
-  session: Session
+  session?: Session["user"];
 }
 
 const Dashboard = ({ session }: DashboardProps) => {
