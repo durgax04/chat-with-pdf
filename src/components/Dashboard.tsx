@@ -23,7 +23,7 @@ const Dashboard = ({ session }: DashboardProps) => {
       <div className="flex flex-col justify-center items-center max-w-5xl mx-auto space-y-10">
         <div className="flex justify-center gap-10 items-center border-b border-white/20 pb-4">
           <h1 className="text-4xl font-bold tracking-tight">
-            Welcome, {session?.user?.name ?? "Guest"}
+            Welcome, {session?.name ?? "Guest"}
           </h1>
 
           <button
