@@ -21,7 +21,7 @@ const Dashboard = ({ session }: DashboardProps) => {
   console.log("session---",session);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#1e293b] via-[#000000] to-[#020617] text-white px-6 py-10">
+    <main className="px-6 py-10">
       <div className="flex flex-col justify-center items-center max-w-5xl mx-auto space-y-10">
         <div className="flex justify-center gap-10 items-center border-b border-white/20 pb-4">
           <h1 className="text-4xl font-bold tracking-tight">

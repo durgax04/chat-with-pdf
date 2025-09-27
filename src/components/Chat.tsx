@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, CircleCheckBig, Loader2, X } from "lucide-react";
+import { CircleCheckBig, Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Message = {
@@ -87,11 +87,11 @@ export default function Chat({ fileId }: { fileId: string }) {
     }
   }
 return (
-    <div className="flex flex-col h-[100vh] max-h-screen w-full sm:max-w-2xl mx-auto border rounded-lg shadow-md bg-white">
+    <div className="flex flex-col h-[100vh] max-h-screen w-[366px] md:w-[600px] lg:w-[900px] sm:max-w-2xl mx-auto border rounded-lg shadow-md bg-white">
       {/* Status */}
       <div className="p-2 text-center text-sm">
         {status === "PROCESSING" && (
-          <p className="text-yellow-600 animate-pulse flex items-center gap-3">
+          <p className="text-yellow-600 animate-pulse flex justify-center gap-2 items-center">
             <Loader2 className="h-5 w-5 animate-spin"/> Processing your PDF... Please wait
           </p>
         )}
