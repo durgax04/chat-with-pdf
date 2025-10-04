@@ -5,7 +5,7 @@ import getChats from "@/lib/action/getChats";
 import { Chat } from "@/types/chat";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import SkeletonLoader from "./ui/ChatSkeleton";
+import SkeletonLoader from "./ChatSkeleton";
 
 const AllChats = () => {
   const [chats, setChats] = useState<Chat[]>([]);
