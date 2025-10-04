@@ -1,17 +1,16 @@
-import { getUserSession } from "@/lib/auth/session";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import GoogleLoginButton from "./GoogleLoginButton";
 import Image from "next/image";
 import Logo from "@/assets/logo.png";
 
-const Navbar = async () => {
-  const session = await getUserSession();
 
-  if (session) {
-    redirect("/dashboard");
-  }
+import type { Session } from "next-auth";
 
+interface NavbarProps {
+  session: Session | null;
+}
+
+const Navbar = ({ session }: { session: NavbarProps }) => {
   return (
     <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md border-b border-border z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,7 +26,16 @@ const Navbar = async () => {
           </Link>
 
           {/* Login Button */}
-          <GoogleLoginButton />
+          {session ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 border px-4 py-2 rounded-lg hover:shadow-lg transition bg-white text-black font-medium"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <GoogleLoginButton />
+          )}
         </div>
       </div>
     </nav>

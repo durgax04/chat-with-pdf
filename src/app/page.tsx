@@ -3,28 +3,22 @@ import Hero from "@/components/LandingPage/Hero";
 import Navbar from "@/components/LandingPage/Navbar";
 import Steps from "@/components/LandingPage/Steps";
 import { getUserSession } from "@/lib/auth/session";
-import { redirect } from "next/navigation";
 
 export default async function Home() {
-  const session = await getUserSession();
 
-  if (session) {
-    redirect("/dashboard");
-  }
+  const session = await getUserSession();
 
   return (
     <>
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <Hero />
+        <Navbar session={session}/>
+        <Hero session={session}/>
         <Steps />
         <Footer />
       </div>
     </>
   );
 }
-
-
 
 // return (
 //     <div className="flex h-screen justify-center items-center">
