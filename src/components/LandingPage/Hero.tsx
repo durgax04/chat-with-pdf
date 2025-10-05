@@ -63,7 +63,7 @@ const Hero = ({ session }: { session: HeroProps }) => {
                 className="w-full aspect-video object-cover"
               >
                 <source
-                  src="https://res.cloudinary.com/db2vutcez/video/upload/v1/Screencast_from_2025-10-03_22-18-36_yzcbwf.webm"
+                  src="https://res.cloudinary.com/db2vutcez/video/upload/v1/Screencast_from_2025-10-05_20-56-22_bdbkrd.webm"
                   type="video/webm"
                 />
               </video>
