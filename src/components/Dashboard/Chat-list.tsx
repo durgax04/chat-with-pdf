@@ -2,9 +2,9 @@
 
 import { MessageSquare, FileText, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import deleteChat from "@/lib/action/deleteChat";
 import Link from "next/link";
 
-import deleteChat from "@/lib/action/deleteChat";
 import { getChats } from "@/lib/action/getChats";
 import { Chat } from "@/types/chat";
 import { Card } from "../ui/card";
@@ -111,10 +111,10 @@ export const ChatList = () => {
                       pathname: `/chat/${chat.id}`,
                       query: { pdfUrl: chat.url },
                     }}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-md text-sm font-medium transition-transform duration-300 hover:scale-105"
+                    className="flex items-center gap-2 px-3 md:py-1.5 xl:py-1.5 lg:md:py-1.5 py-2.5 bg-primary text-white rounded-md text-sm font-medium transition-transform duration-300 hover:scale-105"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    Open Chat
+                    <span className="hidden sm:inline">Open Chat</span>
                   </Link>
 
                   <Button
