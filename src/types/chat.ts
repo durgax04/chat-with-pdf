@@ -7,3 +7,18 @@ export type Chat = {
   updatedAt: Date;
   uploadStatus: "SUCCESS" | "FAILED" | "PROCESSING";
 };
+
+export type ChatURL = {
+  url: string;
+};
+
+export type Message = {
+  text: string;
+  isUser: boolean;
+};
+
+export type MessageProps = {
+  id: string;
+  text: string;
+  isUser: boolean;
+};

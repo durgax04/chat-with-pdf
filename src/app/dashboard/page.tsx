@@ -1,5 +1,5 @@
 import { ChatList } from "@/components/Dashboard/Chat-list";
-import { DashboardHeader } from "@/components/Dashboard/Dashboard-header";
+import { DashboardHeader } from "@/components/Dashboard/DashboardHeader";
 import { UploadCard } from "@/components/Dashboard/Upload";
 import { getUserSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
@@ -13,7 +13,7 @@ const page = async () => {
 
   return (
     <div className="min-h-screen bg-[#0e0f11]">
-      <DashboardHeader username={session?.name ?? "Username"}/>
+      <DashboardHeader userImage={session.image}/>
       <main className="pb-12">
         <UploadCard />
         <ChatList />

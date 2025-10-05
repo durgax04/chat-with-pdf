@@ -1,14 +1,15 @@
 "use client";
 
-import deleteChat from "@/lib/action/deleteChat";
-import getChats from "@/lib/action/getChats";
-import { Chat } from "@/types/chat";
-import { useEffect, useState } from "react";
 import { MessageSquare, FileText, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+import deleteChat from "@/lib/action/deleteChat";
+import { getChats } from "@/lib/action/getChats";
+import { Chat } from "@/types/chat";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import SkeletonLoader from "../ChatSkeleton";
-import Link from "next/link";
 
 export const ChatList = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -106,7 +107,10 @@ export const ChatList = () => {
                     })}
                   </p>
                   <Link
-                    href={`/chat/${chat.id}`}
+                    href={{
+                      pathname: `/chat/${chat.id}`,
+                      query: { pdfUrl: chat.url },
+                    }}
                     className="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-md text-sm font-medium transition-transform duration-300 hover:scale-105"
                   >
                     <MessageSquare className="w-4 h-4" />
@@ -121,7 +125,7 @@ export const ChatList = () => {
                     <FileText className="w-4 h-4" />
                     <Link
                       href={chat.url}
-                      className="text-blue-400 hover:underline"
+                      className="text-blue-400 hover:underline hidden sm:inline"
                       target="_blank"
                     >
                       Open File

@@ -2,11 +2,12 @@
 
 import { useRef, useState } from "react";
 import { Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import toast from "react-hot-toast";
 import { getSignedURL } from "@/lib/action/url_action";
-import { useRouter } from "next/navigation";
 import { UploadState } from "@/types/upload";
 
 export const UploadCard = () => {
@@ -39,6 +40,7 @@ export const UploadCard = () => {
       }
 
       const { url, fileId } = getSignedURLResult.success;
+      const publicUrl = url.split("?")[0]; // // remove query params to get the public object URL
 
       const res = await fetch(url, {
         method: "PUT",
@@ -54,13 +56,13 @@ export const UploadCard = () => {
 
       await fetch("/api/process-pdf", {
         method: "POST",
-        body: JSON.stringify({ fileId, url }),
+        body: JSON.stringify({ fileId, url: publicUrl }),
         headers: { "Content-Type": "application/json" },
       });
 
       setUploadState("success");
       toast.success("Upload successfully");
-      router.push(`/chat/${fileId}`);
+      router.push(`/chat/${fileId}?pdfUrl=${encodeURIComponent(publicUrl)}`);
       setFile(null);
     } catch (error) {
       console.log("Upload error:", error);

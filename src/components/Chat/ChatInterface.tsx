@@ -2,17 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-type Message = {
-  id: string;
-  text: string;
-  isUser: boolean;
-};
+import { MessageProps } from "@/types/chat";
 
 const ChatInterface = ({ fileId }: { fileId: string }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageProps[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"PROCESSING" | "SUCCESS" | "FAILED">(
     "PROCESSING"
@@ -113,7 +110,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
   return (
     <div className="h-full flex flex-col bg-card rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border">
+      <div className="flex justify-between items-center px-6 py-4 border-b border-border">
         <div className="flex items-center gap-2">
           {status === "SUCCESS" && (
             <>
@@ -140,25 +137,35 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
             </>
           )}
         </div>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 border px-4 py-2 rounded-lg hover:shadow-lg transition bg-white text-black font-medium"
+        >
+          Go to Dashboard
+        </Link>
       </div>
 
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {messages.length === 0 && status === "SUCCESS" && !loading && (
           <div className="text-center text-muted-foreground py-8">
-            <p className="text-sm">Ask a question about the PDF to get started</p>
+            <p className="text-sm">
+              Ask a question about the PDF to get started
+            </p>
           </div>
         )}
 
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+            className={`flex ${
+              message.isUser ? "justify-end" : "justify-start"
+            }`}
           >
             <div
               className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
                 message.isUser
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground font-medium"
                   : "bg-muted text-card-foreground"
               }`}
             >
@@ -193,6 +200,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
           <Button
             onClick={askQuestion}
             disabled={status !== "SUCCESS" || loading || !input.trim()}
+            className="font-medium"
           >
             Ask
             <Send className="h-4 w-4 ml-2" />

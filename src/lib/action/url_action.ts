@@ -40,6 +40,7 @@ export const getSignedURL = async (file: File) => {
     Metadata: {
       userId: session.id,
     },
+    ContentType: file.type,
   });
   const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileNameHex}`;
 

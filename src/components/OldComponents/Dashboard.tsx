@@ -1,10 +1,10 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import { Session } from "next-auth";
 import { useState } from "react";
 import { Loader2, LogOut } from "lucide-react";
 import Form from "./Form";
-import { Session } from "next-auth";
 
 interface DashboardProps {
   session?: Session["user"];

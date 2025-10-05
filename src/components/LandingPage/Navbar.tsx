@@ -1,14 +1,11 @@
 import Link from "next/link";
-import GoogleLoginButton from "./GoogleLoginButton";
 import Image from "next/image";
+
+import { GoogleLoginButton } from "./GoogleLoginButton";
 import Logo from "@/assets/logo.png";
+import { NavbarProps } from "@/types/landingpage";
 
 
-import type { Session } from "next-auth";
-
-interface NavbarProps {
-  session: Session | null;
-}
 
 const Navbar = ({ session }: { session: NavbarProps }) => {
   return (

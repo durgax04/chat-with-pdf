@@ -1,10 +1,8 @@
 import Link from "next/link";
-import GoogleLoginButton from "./GoogleLoginButton";
-import type { Session } from "next-auth";
+import { GoogleLoginButton, GoogleLoginButton2 } from "./GoogleLoginButton";
+import { HeroProps } from "@/types/landingpage";
 
-interface HeroProps {
-  session: Session | null;
-}
+
 const Hero = ({ session }: { session: HeroProps }) => {
 
   return (
@@ -37,7 +35,7 @@ const Hero = ({ session }: { session: HeroProps }) => {
               Go to Dashboard
             </Link>
           ) : (
-            <GoogleLoginButton />
+            <GoogleLoginButton2 />
           )}
 
             {/* Trust Indicators */}

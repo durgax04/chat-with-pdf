@@ -2,11 +2,8 @@
 
 import { CircleCheckBig, Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-type Message = {
-  text: string;
-  isUser: boolean;
-};
+import { Button } from "./ui/button";
+import { Message } from "@/types/chat";
 
 export default function Chat({ fileId }: { fileId: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -86,20 +83,28 @@ export default function Chat({ fileId }: { fileId: string }) {
       setLoading(false);
     }
   }
-return (
+  return (
     <div className="flex flex-col h-[100vh] max-h-screen w-[366px] md:w-[600px] lg:w-[900px] sm:max-w-2xl mx-auto border rounded-lg shadow-md bg-white">
       {/* Status */}
       <div className="p-2 text-center text-sm">
         {status === "PROCESSING" && (
           <p className="text-yellow-600 animate-pulse flex justify-center gap-2 items-center">
-            <Loader2 className="h-5 w-5 animate-spin"/> Processing your PDF... Please wait
+            <Loader2 className="h-5 w-5 animate-spin" /> Processing your PDF...
+            Please wait
           </p>
         )}
         {status === "FAILED" && (
-          <p className="text-red-600 flex justify-center gap-2 items-center"> <X className="h-5 w-5"/> Error processing PDF</p>
+          <p className="text-red-600 flex justify-center gap-2 items-center">
+            {" "}
+            <X className="h-5 w-5" /> Error processing PDF
+          </p>
         )}
         {status === "SUCCESS" && (
-          <p className="text-green-600 flex justify-center gap-2 items-center"> <CircleCheckBig className="h-5 w-5"/>PDF ready. Ask your questions!</p>
+          <p className="text-green-600 flex justify-center gap-2 items-center">
+            {" "}
+            <CircleCheckBig className="h-5 w-5" />
+            PDF ready. Ask your questions!
+          </p>
         )}
       </div>
 
@@ -135,13 +140,13 @@ return (
             disabled={loading}
             className="flex-1 border p-2 rounded-lg text-gray-700 focus:outline-none focus:ring focus:ring-blue-400 disabled:opacity-50"
           />
-          <button
+          <Button
             onClick={askQuestion}
             disabled={loading}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:opacity-50"
           >
             {loading ? "..." : "Ask"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

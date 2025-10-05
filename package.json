@@ -31,7 +31,6 @@
     "pdf-parse": "^1.1.1",
     "pdf-parse.js": "link:pdf-parse/lib/pdf-parse.js",
     "pdf2json": "^3.2.0",
-    "pdfjs-dist": "^5.4.149",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",
