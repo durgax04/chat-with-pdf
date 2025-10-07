@@ -16,7 +16,10 @@ export default function ChatPageClient() {
   return (
     <div className="h-screen flex flex-col lg:flex-row">
       {/* PDF Viewer Section */}
-      <div className="bg-[#1A1D23] h-[50vh] lg:h-screen lg:w-1/2 p-4 lg:p-6">
+      <div
+        className="bg-[#1A1D23] md:h-[50vh] lg:h-screen lg:w-1/2 p-4 lg:p-6 
+  hidden md:block"
+      >
         {pdfUrl ? (
           <Suspense fallback={<p className="text-gray-400">Loading PDF...</p>}>
             <iframe
@@ -35,7 +38,7 @@ export default function ChatPageClient() {
       </div>
 
       {/* Chat Section */}
-      <div className="h-[50vh] lg:h-screen lg:w-1/2 p-4 lg:p-6">
+      <div className="h-screen w-full lg:h-screen lg:w-1/2 p-4 lg:p-6">
         <ChatInterface fileId={fileId} />
       </div>
     </div>

@@ -92,7 +92,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
         ...prev,
         {
           id: crypto.randomUUID(),
-          text: "⚠️ Something went wrong. Please try again.",
+          text: "Something went wrong. Please try again.",
           isUser: false,
         },
       ]);
@@ -110,8 +110,8 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
   return (
     <div className="h-full flex flex-col bg-card rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="flex justify-between items-center px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col md:flex-row justify-between items-center px-4 md:px-6 py-3 md:py-4 border-b border-border">
+        <div className="flex items-center gap-2 mb-2 md:mb-0">
           {status === "SUCCESS" && (
             <>
               <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -139,7 +139,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
         </div>
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 border px-4 py-2 rounded-lg hover:shadow-lg transition bg-white text-black font-medium"
+          className="flex items-center gap-1 md:gap-2 border px-2 py-1 md:px-4 md:py-2 rounded-lg hover:shadow-lg transition bg-white text-black font-medium text-xs md:text-base"
         >
           Go to Dashboard
         </Link>
