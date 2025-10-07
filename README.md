@@ -1,4 +1,4 @@
-This is a pdf-chat app for learning chunking, embedding model integration, store in vectorDB, retirive via LLM in msg form.
+This is a pdf-chat-app for learning chunking, embedding model integration, store in vectorDB, retirive via LLM in msg form.
 
 ## Getting Started
 
