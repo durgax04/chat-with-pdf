@@ -55,7 +55,7 @@ jobs:
         run: |
           git clone https://github.com/durgax04/ops.git
           cd ops/pdfchatapp
-          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}" deployment.yml
+          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}|" deployment.yml
           git config user.name "Github Actions Bot"
           git config user.email "actions@github.com"
           git add deployment.yml
