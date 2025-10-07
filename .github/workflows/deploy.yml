@@ -68,4 +68,4 @@ jobs:
       - name: Update Deployment image
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-        run: kubectl set image deployment/pdfchatapp pdfchatapp=$ECR_REGISTRY/gigax01/pdfchatapp:${{ github.sha }}
+        run: kubectl set image deployment/chatwithpdf chatwithpdf=$ECR_REGISTRY/gigax01/pdfchatapp:${{ github.sha }}
