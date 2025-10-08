@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
     domains: ["lh3.googleusercontent.com"],
   },
   output: "standalone",
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '15mb',
+    },
+  },
 };
 
 export default nextConfig;

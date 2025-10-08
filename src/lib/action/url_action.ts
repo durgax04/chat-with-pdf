@@ -15,6 +15,10 @@ export const getSignedURL = async (file: File) => {
     return { failure: "Not authenticated" };
   }
 
+  if (file.size > 15 * 1024 * 1024) {
+    return { failure: "File is too large. Max allowed is 15MB." };
+  }
+
   // URl encrypption
   const computeSHA256 = async (file: File) => {
     const buffer = await file.arrayBuffer();

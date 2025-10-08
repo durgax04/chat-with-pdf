@@ -14,11 +14,24 @@ export const UploadCard = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_FILE_SIZE_MB = 15;
 
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
+    if (selected) {
+      const fileSizeMB = selected.size / (1024 * 1024);
+      if (fileSizeMB > MAX_FILE_SIZE_MB) {
+        toast.error(
+          `File is too large. Maximum allowed size is ${MAX_FILE_SIZE_MB} MB.`
+        );
+        setFile(null);
+        setUploadState("idle");
+        return;
+      }
+    }
+
     setFile(selected);
     setUploadState("idle");
   };
