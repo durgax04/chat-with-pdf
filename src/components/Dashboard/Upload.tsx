@@ -113,7 +113,7 @@ export const UploadCard = () => {
               </Button>
 
               <span className="text-gray-400 text-sm truncate max-w-[200px] sm:max-w-[300px]">
-                {file ? file.name : "No file chosen"}
+                {file ? file.name : "No file chosen (Maximum pdf size is 14mb)"}
               </span>
             </div>
 
