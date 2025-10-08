@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
     setInput("");
     setMessages((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), text: question, isUser: true },
+      { id: uuidv4(), text: question, isUser: true },
     ]);
     setLoading(true);
 
@@ -84,14 +85,14 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
 
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), text: data.answer, isUser: false },
+        { id: uuidv4(), text: data.answer, isUser: false },
       ]);
     } catch (err) {
       console.error("Ask failed:", err);
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           text: "Something went wrong. Please try again.",
           isUser: false,
         },
