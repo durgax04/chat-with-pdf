@@ -120,7 +120,7 @@ export const UploadCard = () => {
                 {(file?.size! / (1024 * 1024)).toFixed(2)} MB&#41;
               </span>
               <span className="text-gray-400 text-sm truncate max-w-[200px] sm:max-w-[300px]">
-                Maximum - 15MB
+                Maximum - 14MB
               </span>
             </div>
 
