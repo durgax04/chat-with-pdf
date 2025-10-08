@@ -48,9 +48,7 @@ export const getSignedURL = async (file: File) => {
   });
   const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileNameHex}`;
 
-  const signedURL = await getSignedUrl(s3, putObjCommand, {
-    expiresIn: 60,
-  });
+  const signedURL = await getSignedUrl(s3, putObjCommand);
 
   console.log(signedURL);
 
