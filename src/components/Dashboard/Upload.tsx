@@ -113,10 +113,11 @@ export const UploadCard = () => {
               </Button>
 
               <span className="text-gray-400 text-sm truncate max-w-[200px] sm:max-w-[300px]">
-                {file ? file.name : "No file chosen (Maximum pdf size is 14mb)"}
+                {file ? file.name : "No file chosen"}
               </span>
+              
               <span className="text-gray-400 text-sm truncate max-w-[200px] sm:max-w-[300px]">
-                {(file?.size! / 1024).toFixed(2)} KB {" "}&#40;
+                {(file?.size! / 1024).toFixed(2)} KB &#40;
                 {(file?.size! / (1024 * 1024)).toFixed(2)} MB&#41;
               </span>
               <span className="text-gray-400 text-sm truncate max-w-[200px] sm:max-w-[300px]">

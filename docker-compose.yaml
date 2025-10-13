@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=postgresql://postgres:postgres@db:5432/chatwithpdf?schema=public
+    container_name: chatwithpdf-docker
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/chatwithpdf?schema=public
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_BEDROCK_MODEL=${AWS_BEDROCK_MODEL}
+      - MODEL_ID=${MODEL_ID}
+      - MODEL=${MODEL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXT_WEBPACK_USEPOLLING=1
+      - WATCHPACK_POLLING=true
+    ports:
+      - "3000:3000"
+      - "5555:5555"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate dev --name init && npx prisma generate && pnpm run dev"
+    dns:
+      - 8.8.8.8
+
+  db:
+    image: postgres:alpine
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chatwithpdf
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+
+networks:
+  default: 

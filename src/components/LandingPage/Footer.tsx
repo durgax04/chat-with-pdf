@@ -26,19 +26,19 @@ const Footer = () => {
           {/* Right - Links */}
           <div className="flex flex-wrap gap-6 md:justify-end">
             <a
-              href="#privacy"
+              href="/privacy"
               className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               Privacy Policy
             </a>
             <a
-              href="#terms"
+              href="/terms"
               className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               Terms of Service
             </a>
             <a
-              href="#contact"
+              href="/contact"
               className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               Contact

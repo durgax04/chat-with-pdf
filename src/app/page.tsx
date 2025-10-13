@@ -1,3 +1,4 @@
+import FAQ from "@/components/LandingPage/FAQ";
 import Footer from "@/components/LandingPage/Footer";
 import Hero from "@/components/LandingPage/Hero";
 import Navbar from "@/components/LandingPage/Navbar";
@@ -14,6 +15,7 @@ export default async function Home() {
         <Navbar session={session}/>
         <Hero session={session}/>
         <Steps />
+        <FAQ />
         <Footer />
       </div>
     </>

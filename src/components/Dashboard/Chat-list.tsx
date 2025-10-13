@@ -111,10 +111,11 @@ export const ChatList = () => {
                       pathname: `/chat/${chat.id}`,
                       query: { pdfUrl: chat.url },
                     }}
-                    className="flex items-center gap-2 px-3 md:py-1.5 xl:py-1.5 lg:md:py-1.5 py-2.5 bg-primary text-white rounded-md text-sm font-medium transition-transform duration-300 hover:scale-105"
+                    className="flex items-center gap-2 px-3 md:py-1.5 xl:py-1.5 lg:md:py-1.5 py-2 bg-primary text-white rounded-md text-sm font-medium transition-transform duration-300 hover:scale-105"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span className="hidden sm:inline">Open Chat</span>
+                    <span className="inline sm:hidden">Chat</span>
                   </Link>
 
                   <Button
