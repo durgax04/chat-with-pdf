@@ -20,7 +20,7 @@ npx prisma migrate dev --name init
 npx prisma generate
 ```
 
-5. Add .env file (Update credentials)
+5. Add .env file (Update credentials) -test
 
 6. Run dev server
 ```bash
