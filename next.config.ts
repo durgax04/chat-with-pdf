@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["lh3.googleusercontent.com"],
   },
-  output: "standalone",
+  // output: "standalone",
   experimental: {
     serverActions: {
       bodySizeLimit: '15mb',

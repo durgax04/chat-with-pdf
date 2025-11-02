@@ -56,7 +56,7 @@ export const getSignedURL = async (file: File) => {
     data: {
       name: file.name,
       url: fileUrl,
-      userId: session.id, // TODO: replace with real user id
+      userId: session.id, 
       uploadStatus: "PROCESSING"
     },
   });
