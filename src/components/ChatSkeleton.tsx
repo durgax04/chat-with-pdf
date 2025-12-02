@@ -12,5 +12,101 @@ const SkeletonLoader = () => {
     </div>
   );
 };
+const ChatSkeleton = () => (
+  <div className="flex flex-col gap-4 px-6 py-4">
+    {/* assistant bubble 1 */}
+    <div className="flex justify-start">
+      <div className="max-w-[70%] space-y-2">
+        <div className="h-3 w-40 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-64 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-52 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
 
-export default SkeletonLoader;
+    {/* user bubble */}
+    <div className="flex justify-end">
+      <div className="max-w-[50%] space-y-2">
+        <div className="h-3 w-32 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* assistant bubble 2 */}
+    <div className="flex justify-start">
+      <div className="max-w-[65%] space-y-2">
+        <div className="h-3 w-56 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-44 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+    {/* assistant bubble 1 */}
+    <div className="flex justify-start">
+      <div className="max-w-[70%] space-y-2">
+        <div className="h-3 w-40 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-64 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-52 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* user bubble */}
+    <div className="flex justify-end">
+      <div className="max-w-[50%] space-y-2">
+        <div className="h-3 w-32 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* assistant bubble 2 */}
+    <div className="flex justify-start">
+      <div className="max-w-[65%] space-y-2">
+        <div className="h-3 w-56 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-44 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+    {/* assistant bubble 1 */}
+    <div className="flex justify-start">
+      <div className="max-w-[70%] space-y-2">
+        <div className="h-3 w-40 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-64 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-52 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* user bubble */}
+    <div className="flex justify-end">
+      <div className="max-w-[50%] space-y-2">
+        <div className="h-3 w-32 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* assistant bubble 2 */}
+    <div className="flex justify-start">
+      <div className="max-w-[65%] space-y-2">
+        <div className="h-3 w-56 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-44 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+    {/* assistant bubble 1 */}
+    <div className="flex justify-start">
+      <div className="max-w-[70%] space-y-2">
+        <div className="h-3 w-40 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-64 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-52 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* user bubble */}
+    <div className="flex justify-end">
+      <div className="max-w-[50%] space-y-2">
+        <div className="h-3 w-32 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+
+    {/* assistant bubble 2 */}
+    <div className="flex justify-start">
+      <div className="max-w-[65%] space-y-2">
+        <div className="h-3 w-56 bg-slate-200 rounded-full animate-pulse" />
+        <div className="h-3 w-44 bg-slate-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+  </div>
+);
+
+export { ChatSkeleton, SkeletonLoader };

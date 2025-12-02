@@ -9,7 +9,7 @@ import { getChats } from "@/lib/action/getChats";
 import { Chat } from "@/types/chat";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
-import SkeletonLoader from "../ChatSkeleton";
+import { SkeletonLoader } from "../ChatSkeleton";
 
 export const ChatList = () => {
   const [chats, setChats] = useState<Chat[]>([]);
