@@ -4,10 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import { Send, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { MessageProps } from "@/types/chat";
+import { Textarea } from "../ui/textarea";
+import { CopyAnswerButton } from "../CopyAnswerButton";
 
 const ChatInterface = ({ fileId }: { fileId: string }) => {
   const [messages, setMessages] = useState<MessageProps[]>([]);
@@ -102,11 +105,20 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
     }
   }
 
-  function handleKeyPress(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" && !loading) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
       askQuestion();
     }
-  }
+  };
+  const handleCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // optional: toast/snackbar saying "Copied"
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-card rounded-lg shadow-lg overflow-hidden">
@@ -156,24 +168,50 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
           </div>
         )}
 
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.isUser ? "justify-end" : "justify-start"
-            }`}
-          >
+        {messages.map((message) => {
+          const isAssistant = !message.isUser;
+
+          return (
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${
-                message.isUser
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "bg-muted text-card-foreground"
+              key={message.id}
+              className={`flex ${
+                message.isUser ? "justify-end" : "justify-start"
               }`}
             >
-              {message.text}
+              <div className="relative max-w-[900px]">
+                <div
+                  className={`rounded-lg px-5 py-4 text-sm ${
+                    message.isUser
+                      ? "bg-primary text-primary-foreground font-medium whitespace-pre-wrap"
+                      : "bg-muted text-card-foreground"
+                  }`}
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      ul: ({ children }) => (
+                        <ul className="list-disc list-inside space-y-1">
+                          {children}
+                        </ul>
+                      ),
+                      li: ({ children }) => (
+                        <li className="ml-4">{children}</li>
+                      ),
+                    }}
+                  >
+                    {message.text}
+                  </ReactMarkdown>
+                </div>
+
+                {isAssistant && (
+                  <div className="absolute top-2 right-2">
+                    <CopyAnswerButton content={message.text} />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {loading && (
           <div className="flex justify-start">
@@ -190,10 +228,10 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
       {/* Input bar */}
       <div className="px-6 py-4 border-t border-border">
         <div className="flex gap-2">
-          <Input
+          <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Ask something about the PDF..."
             disabled={status !== "SUCCESS" || loading}
             className="flex-1"

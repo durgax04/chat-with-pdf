@@ -41,7 +41,20 @@ export async function POST(req: NextRequest) {
           role: "user",
           content: [
             {
-              text: `You are a helpful assistant that answers based only on the provided PDF context.\n\nContext:\n${context}\n\nQuestion: ${question}`,
+              text: `
+You are a helpful assistant that answers based only on the provided PDF context.
+
+Context:
+${context}
+
+Question: ${question}
+
+Formatting rules:
+- Always answer in clear markdown.
+- When the user asks for bullet points or a list, respond using proper markdown bullets.
+- Use "-" for unordered lists and "1." for numbered lists.
+- Do not add any extra text outside the answer.
+          `.trim(),
             },
           ],
         },
@@ -73,6 +86,8 @@ export async function POST(req: NextRequest) {
         .trim() || "No answer found";
 
     console.log("Answer----", answer);
+    console.log(JSON.stringify(answer, null, 2));
+
 
     await db.message.create({
       data: {
