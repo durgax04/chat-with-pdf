@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  Send,
-  CheckCircle2,
-  Loader2,
-  XCircle,
-  LayoutDashboard,
-} from "lucide-react";
+import { Send, CheckCircle2, Loader2, XCircle, LayoutDashboard } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -17,13 +11,13 @@ import { Button } from "@/components/ui/button";
 import { MessageProps } from "@/types/chat";
 import { Textarea } from "../ui/textarea";
 import { CopyAnswerButton } from "../CopyAnswerButton";
-import { SkeletonLoader } from "../ChatSkeleton";
+import { ChatSkeleton } from "../ChatSkeleton";
 
 const ChatInterface = ({ fileId }: { fileId: string }) => {
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"PROCESSING" | "SUCCESS" | "FAILED">(
-    "PROCESSING",
+    "PROCESSING"
   );
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -43,7 +37,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
           id: `msg-${idx}`,
           text: m.content,
           isUser: m.role === "USER",
-        })),
+        }))
       );
     }
     if (status === "SUCCESS") loadMessages();
@@ -158,21 +152,21 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
           )}
         </div>
         <Button
-          variant="ghost"
-          size="sm"
-          className="hidden sm:flex hover:bg-[#0da2e7] hover:text-white"
-          asChild
-        >
-          <Link href="/dashboard">
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Dashboard
-          </Link>
-        </Button>
+                variant="ghost"
+                size="sm"
+                className="hidden sm:flex hover:bg-[#0da2e7] hover:text-white"
+                asChild
+              >
+                <Link href="/dashboard">
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
       </div>
 
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {status === "PROCESSING" && <SkeletonLoader />}
+        {status === "PROCESSING" && <ChatSkeleton />}
 
         {messages.map((message) => {
           const isAssistant = !message.isUser;

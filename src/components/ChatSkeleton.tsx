@@ -1,4 +1,4 @@
-const SkeletonLoader = () => {
+export const SkeletonLoader = () => {
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-8 flex justify-between items-center gap-2 animate-pulse">
       <div className="flex items-center justify-between">
@@ -12,7 +12,7 @@ const SkeletonLoader = () => {
     </div>
   );
 };
-const ChatSkeleton = () => (
+export const ChatSkeleton = () => (
   <div className="flex flex-col gap-4 px-6 py-4">
     {/* assistant bubble 1 */}
     <div className="flex justify-start">
@@ -108,5 +108,3 @@ const ChatSkeleton = () => (
     </div>
   </div>
 );
-
-export { ChatSkeleton, SkeletonLoader };

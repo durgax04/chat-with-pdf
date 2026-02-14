@@ -6,7 +6,7 @@ import Link from "next/link";
 import deleteChat from "@/lib/action/deleteChat";
 import { getChats } from "@/lib/action/getChats";
 import { Chat } from "@/types/chat";
-import SkeletonLoader from "../ChatSkeleton";
+import { SkeletonLoader } from "../ChatSkeleton";
 
 const AllChats = () => {
   const [chats, setChats] = useState<Chat[]>([]);
