@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { MessageProps } from "@/types/chat";
 import { Textarea } from "../ui/textarea";
 import { CopyAnswerButton } from "../CopyAnswerButton";
-import { ChatSkeleton } from "../ChatSkeleton";
+import { SkeletonLoader } from "../ChatSkeleton";
 
 const ChatInterface = ({ fileId }: { fileId: string }) => {
   const [messages, setMessages] = useState<MessageProps[]>([]);
@@ -172,7 +172,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
 
       {/* Chat messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {status === "PROCESSING" && <ChatSkeleton />}
+        {status === "PROCESSING" && <SkeletonLoader />}
 
         {messages.map((message) => {
           const isAssistant = !message.isUser;
