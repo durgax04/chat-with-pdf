@@ -4,7 +4,7 @@ import { UploadCard } from "@/components/Dashboard/Upload";
 import { getUserSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 
-const page = async () => {
+const Page = async () => {
   const session = await getUserSession();
 
   if (!session) {
@@ -12,17 +12,25 @@ const page = async () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0e0f11]">
-      <DashboardHeader userImage={session.image}/>
-      <main className="pb-12">
-        <UploadCard />
-        <ChatList />
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader userImage={session.image} />
+
+      <main className="max-w-5xl mx-auto px-6 pt-18 space-y-6">
+        {/* Upload Section */}
+        <section className="flex justify-center">
+          <UploadCard />
+        </section>
+
+        {/* Chat List Section */}
+        <section className="space-y-6">
+          <ChatList />
+        </section>
       </main>
     </div>
   );
 };
 
-export default page;
+export default Page;
 
 
 {/* <div className="min-h-screen w-full flex flex-col items-center p-6 bg-gradient-to-br from-[#1e293b] via-[#000000] to-[#020617] text-white">

@@ -1,13 +1,10 @@
 import bedrock from "@/lib/bedrock";
 import { db } from "@/lib/prisma";
 import { retrieverContext } from "@/lib/retriever";
+import { AskRequest } from "@/types/chat";
 import { InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { NextRequest, NextResponse } from "next/server";
 
-type AskRequest = {
-  fileId: string;
-  question: string;
-};
 
 export async function POST(req: NextRequest) {
   try {

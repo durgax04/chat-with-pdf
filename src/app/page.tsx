@@ -1,21 +1,30 @@
+import CTASection from "@/components/LandingPage/CTA";
 import FAQ from "@/components/LandingPage/FAQ";
+import FeaturesSection from "@/components/LandingPage/Features";
 import Footer from "@/components/LandingPage/Footer";
-import Hero from "@/components/LandingPage/Hero";
+import HeroSection from "@/components/LandingPage/Hero";
 import Navbar from "@/components/LandingPage/Navbar";
+import PricingSection from "@/components/LandingPage/Pricing";
 import Steps from "@/components/LandingPage/Steps";
+import TestimonialsSection from "@/components/LandingPage/Testimonial";
+import VideoDemoSection from "@/components/LandingPage/VideoDemoSection";
 import { getUserSession } from "@/lib/auth/session";
 
 export default async function Home() {
-
   const session = await getUserSession();
 
   return (
     <>
       <div className="min-h-screen bg-background">
-        <Navbar session={session}/>
-        <Hero session={session}/>
+        <Navbar session={session} />
+        <HeroSection />
+        <VideoDemoSection />
+        <PricingSection />
+        <FeaturesSection />
         <Steps />
+        <TestimonialsSection />
         <FAQ />
+        <CTASection />
         <Footer />
       </div>
     </>

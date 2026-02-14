@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import {
+  Send,
+  CheckCircle2,
+  Loader2,
+  XCircle,
+  LayoutDashboard,
+} from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
@@ -17,7 +23,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
   const [messages, setMessages] = useState<MessageProps[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"PROCESSING" | "SUCCESS" | "FAILED">(
-    "PROCESSING"
+    "PROCESSING",
   );
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -37,7 +43,7 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
           id: `msg-${idx}`,
           text: m.content,
           isUser: m.role === "USER",
-        }))
+        })),
       );
     }
     if (status === "SUCCESS") loadMessages();
@@ -151,12 +157,17 @@ const ChatInterface = ({ fileId }: { fileId: string }) => {
             </>
           )}
         </div>
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1 md:gap-2 border px-2 py-1 md:px-4 md:py-2 rounded-lg hover:shadow-lg transition bg-white text-black font-medium text-xs md:text-base"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="hidden sm:flex hover:bg-[#0da2e7] hover:text-white"
+          asChild
         >
-          Go to Dashboard
-        </Link>
+          <Link href="/dashboard">
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            Dashboard
+          </Link>
+        </Button>
       </div>
 
       {/* Chat messages */}

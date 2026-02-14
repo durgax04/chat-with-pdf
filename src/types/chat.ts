@@ -22,3 +22,9 @@ export type MessageProps = {
   text: string;
   isUser: boolean;
 };
+
+
+export type AskRequest = {
+  fileId: string;
+  question: string;
+};

@@ -2,14 +2,13 @@
 
 import { MessageSquare, FileText, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import deleteChat from "@/lib/action/deleteChat";
 import Link from "next/link";
-
 import { getChats } from "@/lib/action/getChats";
 import { Chat } from "@/types/chat";
-import { Card } from "../ui/card";
 import { Button } from "../ui/button";
-import { SkeletonLoader } from "../ChatSkeleton";
+import { ChatSkeleton } from "../ChatSkeleton";
 
 export const ChatList = () => {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -40,113 +39,100 @@ export const ChatList = () => {
     }
   };
 
-  // Show skeleton loaders while fetching chats
-  if (loading) {
-    return (
-      <section className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">
-            All Chats
-          </h2>
-          <div className="space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonLoader key={i} />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (chats.length === 0) {
-    return (
-      <section className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">
-            All Chats
-          </h2>
-          <Card className="p-8 bg-[#1A1D23] border border-[#23293D] shadow-md text-center rounded-2xl">
-            <p className="text-gray-400 text-lg">
-              No chats yet. Upload a PDF to get started!
-            </p>
-          </Card>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">
-          All Chats
-        </h2>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <h2 className="text-2xl font-bold text-center">All Chats</h2>
 
-        <div className="space-y-4">
-          {chats.map((chat) => (
-            <Card
-              key={chat.id}
-              className="p-6 bg-[#1A1D23] border border-[#23293D]  rounded-2xl shadow hover:shadow-[0_0_15px_rgba(35,93,230,0.4)] transition-all duration-300"
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-4"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-1 truncate">
-                    {chat.name}
-                  </h3>
-                </div>
+              <ChatSkeleton />
+            </motion.div>
+          ) : chats.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center text-muted-foreground py-10"
+            >
+              No chats yet. Upload a PDF to get started!
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-3"
+            >
+              {chats.map((chat) => (
+                <motion.div
+                  key={chat.id}
+                  layout
+                  whileHover={{ scale: 1.01 }}
+                  className="rounded-xl bg-card border p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-all"
+                >
+                  {/* Left Section */}
+                  <div className="flex items-start gap-3 flex-1">
+                    <FileText className="w-5 h-5 text-primary mt-1" />
+                    <div className="flex flex-col">
+                      <span className="font-medium truncate">
+                        {chat.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(chat.createdAt).toLocaleString("en-IN", {
+                          timeZone: "Asia/Kolkata",
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="flex flex-wrap gap-2 items-center">
-                  {/* Open Chat */}
-                  <p className="text-white/50">
-                    Created at:{" "}
-                    {new Date(chat.createdAt).toLocaleString("en-IN", {
-                      timeZone: "Asia/Kolkata",
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
-                  <Link
-                    href={{
-                      pathname: `/chat/${chat.id}`,
-                      query: { pdfUrl: chat.url },
-                    }}
-                    className="flex items-center gap-2 px-3 md:py-1.5 xl:py-1.5 lg:md:py-1.5 py-2 bg-primary text-white rounded-md text-sm font-medium transition-transform duration-300 hover:scale-105"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="hidden sm:inline">Open Chat</span>
-                    <span className="inline sm:hidden">Chat</span>
-                  </Link>
-
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="gap-2 bg-gray-700 hover:bg-gray-600 text-white transition-transform duration-300 hover:scale-105"
-                  >
-                    <FileText className="w-4 h-4" />
+                  {/* Actions */}
+                  <div className="flex gap-2 flex-wrap">
                     <Link
-                      href={chat.url}
-                      className="text-blue-400 hover:underline hidden sm:inline"
-                      target="_blank"
+                      href={{
+                        pathname: `/chat/${chat.id}`,
+                        query: { pdfUrl: chat.url },
+                      }}
                     >
-                      Open File
+                      <Button size="sm" variant="secondary">
+                        <MessageSquare className="w-4 h-4" />
+                      </Button>
                     </Link>
-                  </Button>
 
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(chat.id)}
-                    className="gap-2 bg-red-600 hover:bg-red-500 text-white transition-transform duration-300 hover:scale-105"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    {deleting === chat.id ? "Deleting..." : ""}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+                    <Link href={chat.url} target="_blank">
+                      <Button size="sm" variant="outline">
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                    </Link>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(chat.id)}
+                      disabled={deleting === chat.id}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );

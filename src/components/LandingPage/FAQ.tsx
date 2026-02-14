@@ -1,3 +1,5 @@
+"use client";
+import { motion } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
@@ -5,65 +7,90 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const FAQ = () => {
-  const faqs = [
-    {
-      question: "What file formats are supported?",
-      answer: "Currently, we support PDF files. Simply upload your PDF document and start asking questions instantly.",
-    },
-    {
-      question: "How does the chat feature work?",
-      answer: "Our AI analyzes your PDF content and allows you to ask questions in natural language. You'll get accurate answers based on the document's content within seconds.",
-    },
-    {
-      question: "Is my data secure?",
-      answer: "Yes, we take data security seriously. All uploaded documents are encrypted and stored securely. We never share your documents with third parties.",
-    },
-    {
-      question: "What's the maximum file size?",
-      answer: "If this site is not in vercel, you can upload PDF files up to 14MB in size. But this site is running on vercel, It supports less that 1MB size pdf, For larger documents, please contact our support team.",
-    },
-    {
-      question: "Can I ask questions in any language?",
-      answer: "Yes, our AI supports multiple languages. You can ask questions in your preferred language and receive answers accordingly.",
-    },
-    {
-      question: "How many documents can I upload?",
-      answer: "Now It is completely free no limit, But we will eventually add this - The number of documents depends on your plan. Free users can upload up to 3 documents, while premium users enjoy unlimited uploads.",
-    },
-  ];
+const faqs = [
+  {
+    question: "How does Chat with PDF work?",
+    answer:
+      "Simply upload your PDF document, and our AI will analyze its content. You can then ask questions in natural language, and get instant, accurate answers based on the document's content.",
+  },
+  {
+    question: "What types of PDFs can I upload?",
+    answer:
+      "You can upload any text-based PDF including research papers, contracts, reports, manuals, books, and more. Scanned documents with OCR text are also supported.",
+  },
+  {
+    question: "Is my data secure and private?",
+    answer:
+      "Absolutely. Your documents are encrypted with bank-level 256-bit SSL encryption. We never share your data with third parties, and you can delete your documents anytime. Your privacy is our top priority.",
+  },
+  {
+    question: "How accurate are the AI responses?",
+    answer:
+      "Our AI uses advanced language models to provide highly accurate responses based strictly on your document's content. It cites specific sections so you can verify the information.",
+  },
+  {
+    question: "Can I cancel my subscription anytime?",
+    answer:
+      "Yes! You can cancel your subscription at any time with no questions asked. There are no hidden fees or cancellation charges. You'll continue to have access until the end of your billing period.",
+  },
+  {
+    question: "What payment methods do you accept?",
+    answer:
+      "We accept all major credit cards, debit cards, and PayPal through our secure Stripe payment gateway. All transactions are processed securely.",
+  },
+  {
+    question: "Is there a free trial available?",
+    answer:
+      "Yes! We offer a 7-day free trial on all plans so you can experience the full power of Chat with PDF before committing. No credit card required to start.",
+  },
+];
 
+const FAQSection = () => {
   return (
-    <section className="py-16 sm:py-24 bg-secondary/20">
+    <section id="faq" className="py-20 lg:py-32 bg-[#f7f7f7]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-muted-foreground text-center mb-12">
-            Find answers to common questions about ChatWithPDF
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Everything you need to know about Chat with PDF
           </p>
-          
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto"
+        >
           <Accordion type="single" collapsible className="w-full space-y-4">
             {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
+              <AccordionItem
+                key={index}
                 value={`item-${index}`}
-                className="bg-background border border-border rounded-lg px-6 shadow-sm"
+                className="bg-background border border-border/50 rounded-xl px-6 overflow-hidden transition-all duration-300 hover:border-[#0da2e7] hover:shadow-lg hover:shadow-primary/5"
               >
-                <AccordionTrigger className="text-left hover:text-primary">
+                <AccordionTrigger className="text-left text-base sm:text-lg font-medium hover:no-underline hover:text-[#0da2e7] transition-colors">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
+                <AccordionContent className="text-muted-foreground text-sm sm:text-base">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
 };
 
-export default FAQ;
+export default FAQSection;
