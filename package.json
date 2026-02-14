@@ -30,7 +30,7 @@
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.544.0",
     "motion": "^12.23.26",
-    "next": "15.5.2",
+    "next": "16.1.6",
     "next-auth": "^4.24.11",
     "nodemailer": "^7.0.6",
     "pdf-parse": "^1.1.1",
