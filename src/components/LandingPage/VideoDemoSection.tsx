@@ -7,21 +7,31 @@ const VideoDemoSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+  const playVideo = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      await videoRef.current.play();
+      setIsPlaying(true);
+    } catch (e) {
+      console.warn("Play failed", e);
     }
   };
 
-  const handleMouseEnter = () => {
-    if (videoRef.current && !isPlaying) {
-      videoRef.current.play();
-      setIsPlaying(true);
+  const pauseVideo = () => {
+    if (!videoRef.current) return;
+
+    videoRef.current.pause();
+    setIsPlaying(false);
+  };
+
+  const handlePlayPause = async () => {
+    if (!videoRef.current) return;
+
+    if (videoRef.current.paused) {
+      await playVideo();
+    } else {
+      pauseVideo();
     }
   };
 
@@ -61,7 +71,6 @@ const VideoDemoSection = () => {
           <div
             className="relative aspect-video rounded-2xl overflow-hidden bg-card border border-border shadow-float cursor-pointer group"
             onClick={handlePlayPause}
-            onMouseEnter={handleMouseEnter}
           >
             {/* Placeholder Video - Replace src with actual video URL */}
             <video
@@ -70,25 +79,22 @@ const VideoDemoSection = () => {
               muted
               loop
               playsInline
-              poster="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1920&h=1080&fit=crop"
             >
               <source
-                src="https://www.w3schools.com/html/mov_bbb.mp4"
+                src="https://res.cloudinary.com/db2vutcez/video/upload/Screencast_from_2026-02-23_00-00-56_rzqwum.mp4"
                 type="video/mp4"
               />
-              Your browser does not support the video tag.
             </video>
-
             {/* Play/Pause Overlay */}
             <div
               className={`absolute inset-0 flex items-center justify-center bg-background/30 transition-opacity duration-300 ${
-                isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+                isPlaying ? "opacity-0 " : "opacity-100"
               }`}
             >
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-16 h-16 md:w-20 md:h-20 bg-gradient-primary rounded-full flex items-center justify-center shadow-glow"
+                className="w-16 h-16 md:w-20 md:h-20 bg-gradient-primary rounded-full flex items-center justify-center"
               >
                 {isPlaying ? (
                   <Pause className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" />
@@ -98,31 +104,6 @@ const VideoDemoSection = () => {
               </motion.div>
             </div>
 
-            {/* Floating UI Elements */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm rounded-lg px-3 py-2 border border-border hidden md:flex items-center gap-2"
-            >
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-xs text-foreground font-medium">
-                AI Processing
-              </span>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.7 }}
-              className="absolute bottom-4 right-4 bg-card/90 backdrop-blur-sm rounded-lg px-3 py-2 border border-border hidden md:block"
-            >
-              <span className="text-xs text-muted-foreground">
-                Instant responses
-              </span>
-            </motion.div>
           </div>
         </motion.div>
       </div>
