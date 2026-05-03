@@ -5,7 +5,6 @@ import { AskRequest } from "@/types/chat";
 import { InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { NextRequest, NextResponse } from "next/server";
 
-
 export async function POST(req: NextRequest) {
   try {
     const { fileId, question }: AskRequest = await req.json();
@@ -32,39 +31,43 @@ export async function POST(req: NextRequest) {
     const model_Id = process.env.MODEL_ID!;
 
     // Model request format (doesn't support role system)
-    const body = {
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              text: `
-You are a helpful assistant that answers based only on the provided PDF context.
+    const prompt = `
+You are a helpful assistant that answers questions based ONLY on the provided PDF context.
+
+Guidelines:
+- Answer in a natural, human-friendly way like ChatGPT
+- Use simple and clear language
+- Use short paragraphs
+- Avoid excessive markdown like ** or unnecessary bullet points
+- Use bullet points only if they improve clarity
+- Keep the answer concise but informative
+- If the answer is not in the context, say: "I couldn't find this information in the provided document."
 
 Context:
 ${context}
 
-Question: ${question}
+Question:
+${question}
 
-Formatting rules:
-- Always answer in clear markdown.
-- When the user asks for bullet points or a list, respond using proper markdown bullets.
-- Use "-" for unordered lists and "1." for numbered lists.
-- Do not add any extra text outside the answer.
-          `.trim(),
-            },
-          ],
+Answer:
+`.trim();
+
+    const bodyPayload = {
+      messages: [
+        {
+          role: "user",
+          content: [{ text: prompt }],
         },
       ],
       inferenceConfig: {
         maxTokens: 512,
-        temperature: 0.2,
+        temperature: 0.3, // slightly more natural
       },
     };
 
     const command = new InvokeModelCommand({
       modelId: model_Id,
-      body: JSON.stringify(body),
+      body: JSON.stringify(bodyPayload),
       accept: "application/json",
       contentType: "application/json",
     });
@@ -84,7 +87,6 @@ Formatting rules:
 
     console.log("Answer----", answer);
     console.log(JSON.stringify(answer, null, 2));
-
 
     await db.message.create({
       data: {

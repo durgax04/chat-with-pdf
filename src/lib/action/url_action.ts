@@ -20,17 +20,17 @@ export const getSignedURL = async (file: File) => {
   }
 
   // URl encrypption
-  const computeSHA256 = async (file: File) => {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    return hashHex;
-  };
+  // const computeSHA256 = async (file: File) => {
+  //   const buffer = await file.arrayBuffer();
+  //   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  //   const hashArray = Array.from(new Uint8Array(hashBuffer));
+  //   const hashHex = hashArray
+  //     .map((b) => b.toString(16).padStart(2, "0"))
+  //     .join("");
+  //   return hashHex;
+  // };
 
-  const checkSum = await computeSHA256(file);
+  // const checkSum = await computeSHA256(file);
 
   const generateFileName = (bytes = 32) =>
     crypto.randomBytes(bytes).toString("hex");
@@ -40,7 +40,6 @@ export const getSignedURL = async (file: File) => {
   const putObjCommand = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET!,
     Key: fileNameHex,
-    ChecksumSHA256: checkSum,
     Metadata: {
       userId: session.id,
     },
