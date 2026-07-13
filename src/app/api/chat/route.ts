@@ -1,7 +1,7 @@
-import bedrock from "@/lib/bedrock";
+import { bedrock } from "@/lib/bedrock";
 import { db } from "@/lib/prisma";
 import { retrieverContext } from "@/lib/retriever";
-import { AskRequest } from "@/types/chat";
+import { AskRequest, MessageRole } from "@/types/chat";
 import { InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       data: {
         fileId,
         text: question,
-        role: "USER",
+        role: MessageRole.USER,
         content: question,
         isUser: true,
       },
@@ -75,7 +75,7 @@ Answer:
     const response = await bedrock.send(command);
     const responseBody = await new Response(response.body).text();
     const parsed = JSON.parse(responseBody);
-    console.log("Answer content----", parsed.output?.message?.content);
+    // console.log("Answer content----", parsed.output?.message?.content);
 
     // extract answer
     // const answer = parsed.output?.message?.content?.[0]?.text ?? "No answer found";
@@ -85,14 +85,14 @@ Answer:
         .join(" ")
         .trim() || "No answer found";
 
-    console.log("Answer----", answer);
-    console.log(JSON.stringify(answer, null, 2));
+    // console.log("Answer----", answer);
+    // console.log(JSON.stringify(answer, null, 2));
 
     await db.message.create({
       data: {
         fileId,
         text: answer,
-        role: "SYSTEM",
+        role: MessageRole.SYSTEM,
         content: answer,
         isUser: false,
       },

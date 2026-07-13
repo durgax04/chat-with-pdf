@@ -28,3 +28,8 @@ export type AskRequest = {
   fileId: string;
   question: string;
 };
+
+export enum MessageRole {
+  USER = "USER",
+  SYSTEM = "SYSTEM",
+}

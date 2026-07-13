@@ -8,17 +8,22 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 9
           run_install: true
@@ -26,49 +31,55 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Build app
-        run: pnpm build
-
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: us-east-1
 
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push docker image
-        env:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/gigax01/pdfchatapp:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/gigax01/pdfchatapp:$IMAGE_TAG
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Clone deployment repo, update tags and push tags
+      - name: Build and push docker Image
+        uses: docker/build-push-action@v6
+        with: 
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ECR_REGISTRY }}/gigax01/pdfchatapp:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Clone GitOps Repository
         env:
           PAT: ${{ secrets.PAT }}
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          git clone https://github.com/durgax04/ops.git
-          cd ops/pdfchatapp
-          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}|" deployment.yml
-          git config user.name "Github Actions Bot"
-          git config user.email "actions@github.com"
-          git add deployment.yml
-          git commit -m "Update pdfchatapp image to $IMAGE_TAG"
-          git push https://${PAT}@github.com/durgax04/ops.git main
-
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region ap-south-1 --name pdfchatapp-cluster
-
-      - name: Verify cluster connection
-        run: kubectl get nodes
-
-      - name: Update Deployment image
+          git clone https://${PAT}@github.com/durgax04/ops.git
+      
+      - name: Update Kubernetes Manifest & Push
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-        run: kubectl set image deployment/chatwithpdf chatwithpdf=$ECR_REGISTRY/gigax01/pdfchatapp:${{ github.sha }}
+          IMAGE_TAG: ${{ github.sha }}
+          PAT: ${{ secrets.PAT }}
+        run: |
+          cd ops/pdfchatapp
+          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}|" deployment.yml
+          
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          
+          git add deployment.yml
+          git commit -m "Update pdfchatapp image to $IMAGE_TAG"
+
+          git push https://${PAT}@github.com/durgax04/ops.git HEAD:main
+
+      - name: Deployment Triggered
+        run: |
+          echo "Image pushed to ECR."
+          echo "GitOps repository updated."
+          echo "Argo CD will detect the change and deploy automatically." 

@@ -2,15 +2,20 @@ import { db } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { BedrockEmbeddings } from "@langchain/aws";
-import { PineconeStore } from "@langchain/pinecone";
 import path from "path";
 import fs from "fs/promises";
 import { getPineconeClient } from "@/lib/pinecone";
+import { PineconeStore } from "@langchain/pinecone";
+import { embedding } from "@/lib/bedrock";
+import { UploadStatus } from "@/types/upload";
 
 export async function POST(req: NextRequest) {
+  let fileId: string | undefined;
+
   try {
-    const { fileId } = await req.json();
+    const body = await req.json();
+
+    fileId = body.fileId;
     const file = await db.file.findUnique({
       where: {
         id: fileId,
@@ -22,11 +27,16 @@ export async function POST(req: NextRequest) {
         {
           error: "File not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const res = await fetch(file.url);
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch PDF: ${res.status}`);
+    }
+
     const buffer = Buffer.from(await res.arrayBuffer());
     const tempPath = path.join("/tmp", `${fileId}.pdf`);
     await fs.writeFile(tempPath, buffer);
@@ -43,25 +53,33 @@ export async function POST(req: NextRequest) {
     });
 
     const chunks = await splitter.splitDocuments(docs);
-    console.log("chunks---", chunks);
+    // console.log("chunks---", chunks);
+    console.log("Total chunks:", chunks.length);
 
-    const embedding = new BedrockEmbeddings({
-      region: process.env.AWS_REGION!,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-      model: process.env.MODEL!,
-    });
+    
     // store in pinecone
     const pinecone = await getPineconeClient();
     // const pineconeIndex = pinecone.Index("hugg-embedding");
     const pineconeIndex = pinecone.Index("chat-pdf");
 
-    await PineconeStore.fromDocuments(chunks, embedding, {
-      pineconeIndex,
-      namespace: fileId,
-    });
+    try {
+      await PineconeStore.fromDocuments(chunks, embedding, {
+        pineconeIndex,
+        namespace: fileId,
+      });
+    } catch (err) {
+      console.error("Embedding upload failed", err);
+      throw err;
+    }
+
+    if (!fileId) {
+      return NextResponse.json(
+        {
+          error: "Missing fileId",
+        },
+        { status: 400 },
+      );
+    }
 
     // mark as ready
     await db.file.update({
@@ -69,7 +87,7 @@ export async function POST(req: NextRequest) {
         id: fileId,
       },
       data: {
-        uploadStatus: "SUCCESS",
+        uploadStatus: UploadStatus.SUCCESS,
       },
     });
 
@@ -80,18 +98,20 @@ export async function POST(req: NextRequest) {
     console.log("Error in process-pdf---", error);
 
     // mark as failed
-    const { fileId } = await req.json();
     if (fileId) {
       await db.file.update({
         where: { id: fileId },
-        data: { uploadStatus: "FAILED" },
+        data: {
+          uploadStatus: UploadStatus.FAILED,
+        },
       });
     }
+
     return NextResponse.json(
       {
         error: "Processing failed",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
