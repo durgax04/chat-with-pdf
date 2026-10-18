@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const plans = [
   {
+    name: "Pro",
     price: "$7",
     description: "For individuals & regular users",
     features: [
@@ -51,7 +52,7 @@ const PricingContent = () => {
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
               Simple, Transparent
               <br />
-              <span className="bg-gradient-to-r from-[#0e8df2] to-[#0e8df2]/700 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-[#0e8df2] to-[#0e8df2]/700 bg-clip-text text-transparent">
                 Pricing
               </span>
             </h1>

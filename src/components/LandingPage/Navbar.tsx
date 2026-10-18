@@ -42,16 +42,6 @@ const Navbar = ({ session }: { session: NavbarProps }) => {
             </span>
           </Link>
 
-          {/* EXTRA LOGO SECTION (From provided code) */}
-          {/* <Link href="/" className="hidden md:flex items-center">
-            <div className="p-2">
-              <Image src={Logo} alt="Logo" className="w-8 h-8" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 bg-clip-text text-transparent">
-              ChatWithPDF
-            </span>
-          </Link> */}
-
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
@@ -66,9 +56,9 @@ const Navbar = ({ session }: { session: NavbarProps }) => {
           </div>
 
           {/* Desktop Login / CTA */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ">
             {session ? (
-              <Button variant="ghost" size="sm" asChild>
+              <Button size="sm" asChild>
                 <Link href="/dashboard">
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Dashboard
