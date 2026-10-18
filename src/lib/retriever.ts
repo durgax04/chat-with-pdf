@@ -1,19 +1,12 @@
 import { getPineconeClient } from "./pinecone";
 import { PineconeStore } from "@langchain/pinecone";
-import { BedrockEmbeddings } from "@langchain/aws";
+import { embedding } from "./bedrock"; // importing the global singleton instance
 
+// Test required
 export async function retrieverContext(query: string, fileId: string) {
-
-  const embedding = new BedrockEmbeddings({
-        region: process.env.AWS_REGION!,
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-        },
-        model: process.env.MODEL!,
-      });
-
   const pinecone = await getPineconeClient();
+  
+  // Reuse the global embedding instance
   const store = await PineconeStore.fromExistingIndex(embedding, {
     pineconeIndex: pinecone.Index("chat-pdf"),
     namespace: fileId,
@@ -23,4 +16,3 @@ export async function retrieverContext(query: string, fileId: string) {
 
   return results.map((doc) => doc.pageContent).join("\n\n");
 }
-  
