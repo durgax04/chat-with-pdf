@@ -8,110 +8,104 @@ import { getPineconeClient } from "@/lib/pinecone";
 import { PineconeStore } from "@langchain/pinecone";
 import { embedding } from "@/lib/bedrock";
 import { UploadStatus } from "@/types/upload";
+import { s3 } from "@/lib/s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { Readable } from "stream";
+
+// Helper to convert AWS SDK stream to Buffer
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks);
+}
 
 export async function POST(req: NextRequest) {
   let fileId: string | undefined;
+  let tempPath: string | undefined;
 
   try {
     const body = await req.json();
-
     fileId = body.fileId;
+
+    if (!fileId) {
+      return NextResponse.json({ error: "Missing fileId" }, { status: 400 });
+    }
+
     const file = await db.file.findUnique({
-      where: {
-        id: fileId,
-      },
+      where: { id: fileId },
     });
 
     if (!file) {
-      return NextResponse.json(
-        {
-          error: "File not found",
-        },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    const res = await fetch(file.url);
+    // 1. Fetch directly from S3 using IAM credentials (No public access needed)
+    // Assumes file.key exists in DB, or extract the key from the stored URL
+    const bucket = process.env.AWS_S3_BUCKET!;
+    const s3Key = file.key || new URL(file.url).pathname.replace(/^\/+/, "");
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch PDF: ${res.status}`);
+    const s3Response = await s3.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: s3Key,
+      })
+    );
+
+    if (!s3Response.Body) {
+      throw new Error("Empty body received from S3");
     }
 
-    const buffer = Buffer.from(await res.arrayBuffer());
-    const tempPath = path.join("/tmp", `${fileId}.pdf`);
+    const buffer = await streamToBuffer(s3Response.Body as Readable);
+
+    // 2. Write to /tmp for parsing
+    tempPath = path.join("/tmp", `${fileId}.pdf`);
     await fs.writeFile(tempPath, buffer);
 
-    // extract text
-
+    // 3. Extract and split text
     const loader = new PDFLoader(tempPath);
     const docs = await loader.load();
 
-    // split into chunks
     const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 800,
       chunkOverlap: 100,
     });
 
     const chunks = await splitter.splitDocuments(docs);
-    // console.log("chunks---", chunks);
     console.log("Total chunks:", chunks.length);
 
-    
-    // store in pinecone
+    // 4. Ingest embeddings into Pinecone
     const pinecone = await getPineconeClient();
-    // const pineconeIndex = pinecone.Index("hugg-embedding");
     const pineconeIndex = pinecone.Index("chat-pdf");
 
-    try {
-      await PineconeStore.fromDocuments(chunks, embedding, {
-        pineconeIndex,
-        namespace: fileId,
-      });
-    } catch (err) {
-      console.error("Embedding upload failed", err);
-      throw err;
-    }
+    await PineconeStore.fromDocuments(chunks, embedding, {
+      pineconeIndex,
+      namespace: fileId,
+    });
 
-    if (!fileId) {
-      return NextResponse.json(
-        {
-          error: "Missing fileId",
-        },
-        { status: 400 },
-      );
-    }
-
-    // mark as ready
+    // 5. Mark as ready
     await db.file.update({
-      where: {
-        id: fileId,
-      },
-      data: {
-        uploadStatus: UploadStatus.SUCCESS,
-      },
+      where: { id: fileId },
+      data: { uploadStatus: UploadStatus.SUCCESS },
     });
 
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("Error in process-pdf---", error);
+    console.error("Error in process-pdf:", error);
 
-    // mark as failed
     if (fileId) {
       await db.file.update({
         where: { id: fileId },
-        data: {
-          uploadStatus: UploadStatus.FAILED,
-        },
+        data: { uploadStatus: UploadStatus.FAILED },
       });
     }
 
-    return NextResponse.json(
-      {
-        error: "Processing failed",
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+  } finally {
+    // 6. Ensure temporary file is deleted even if embedding fails
+    if (tempPath) {
+      await fs.unlink(tempPath).catch(() => null);
+    }
   }
 }

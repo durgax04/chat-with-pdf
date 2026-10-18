@@ -31,12 +31,3 @@ const Page = async () => {
 };
 
 export default Page;
-
-
-{/* <div className="min-h-screen w-full flex flex-col items-center p-6 bg-gradient-to-br from-[#1e293b] via-[#000000] to-[#020617] text-white">
-      <Dashboard session={session} />
-
-      <div className="w-full max-w-5xl mt-8 flex-1">
-        <AllChats />
-      </div>
-    </div> */}

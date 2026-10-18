@@ -60,19 +60,25 @@ export const UploadCard = () => {
         setShowProgressBar(true);
       }, 600);
 
-      const getSignedURLResult = await getSignedURL(file);
+      // Pass plain metadata to the Server Action to ensure clean serialization
+      const getSignedURLResult = await getSignedURL({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      });
+
       if (!getSignedURLResult.success) {
-        throw new Error("Failed to get signed URL");
+        throw new Error(getSignedURLResult.failure || "Failed to get signed URL");
       }
 
       const { url, fileId } = getSignedURLResult.success;
-      const publicUrl = url.split("?")[0];
 
-      // Real Upload with Progress
+      // upload to S3 with Progress
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", url);
 
+        // content-Type must match what was specified during signing
         xhr.setRequestHeader("Content-Type", file.type);
 
         xhr.upload.onprogress = (event) => {
@@ -83,29 +89,40 @@ export const UploadCard = () => {
         };
 
         xhr.onload = () => {
-          if (xhr.status === 200) resolve();
-          else reject(new Error("Upload failed"));
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            console.error("S3 upload failed:", xhr.status, xhr.responseText);
+            reject(new Error(`S3 returned status ${xhr.status}`));
+          }
         };
 
-        xhr.onerror = () => reject(new Error("Upload failed"));
+        xhr.onerror = () => {
+          console.error("Network or CORS failure during S3 PUT");
+          reject(new Error("Upload network error"));
+        };
 
         xhr.send(file);
       });
 
-      // Preparing phase
+      // Preparing phase: document parsing and embeddings
       setUploadState("preparing");
 
-      await fetch("/api/process-pdf", {
+      const processRes = await fetch("/api/process-pdf", {
         method: "POST",
-        body: JSON.stringify({ fileId, url: publicUrl }),
+        body: JSON.stringify({ fileId }),
         headers: { "Content-Type": "application/json" },
       });
+
+      if (!processRes.ok) {
+        throw new Error("Failed to process PDF vectors");
+      }
 
       setUploadState("success");
       toast.success("Upload successful!");
 
       setTimeout(() => {
-        router.push(`/chat/${fileId}?pdfUrl=${encodeURIComponent(publicUrl)}`);
+        router.push(`/chat/${fileId}`);
       }, 1000);
     } catch (error) {
       console.error(error);
@@ -202,7 +219,6 @@ export const UploadCard = () => {
               transition={{ duration: 0.3 }}
               className="w-full text-center flex flex-col items-center"
             >
-              {/* Animated Spinner */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
