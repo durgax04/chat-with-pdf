@@ -10,17 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      id-token: write
       contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           run_install: true
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -30,11 +31,11 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+          role-session-name: GitHubActionsECRPush
           aws-region: us-east-1
 
       - name: Login to Amazon ECR
@@ -46,11 +47,11 @@ jobs:
 
       - name: Build and push docker Image
         uses: docker/build-push-action@v6
-        with: 
+        with:
           context: .
           push: true
           tags: |
-            ${{ secrets.ECR_REGISTRY }}:${{ github.sha }}
+            ${{ secrets.ECR_REGISTRY }}/gigax01/pdfchatapp:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -59,7 +60,7 @@ jobs:
           PAT: ${{ secrets.PAT }}
         run: |
           git clone https://${PAT}@github.com/durgax04/ops.git
-      
+
       - name: Update Kubernetes Manifest & Push
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
@@ -79,6 +80,6 @@ jobs:
 
       - name: Deployment Triggered
         run: |
-          echo "Image pushed to ECR."
+          echo "Image pushed to ECR: ${{ secrets.ECR_REGISTRY }}/gigax01/pdfchatapp:${{ github.sha }}"
           echo "GitOps repository updated."
-          echo "Argo CD will detect the change and deploy automatically." 
+          echo "Argo CD will detect the change and deploy automatically."
