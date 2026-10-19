@@ -50,7 +50,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.ECR_REGISTRY }}/gigax01/pdfchatapp:${{ github.sha }}
+            ${{ secrets.ECR_REGISTRY }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
