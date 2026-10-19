@@ -2,12 +2,6 @@
 
 A document-based Retrieval-Augmented Generation (RAG) application that
 turns PDF documents into searchable context for AI-generated responses.
-
-The application combines **Next.js and TypeScript**, **Amazon S3**,
-**Amazon Bedrock**, **Pinecone**, and **PostgreSQL**. Its workflow
-separates document ingestion from user-facing retrieval and
-generate responses.
-
 ---
 
 ## Contents
