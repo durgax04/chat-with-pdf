@@ -1,0 +1,48 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    uses: ./.github/workflows/reusable-build.yaml
+    with:
+      role_to_assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+      aws_region: us-east-1
+
+  smoke-test:
+    name: Smoke Test
+    needs: build
+    uses: ./.github/workflows/reusable-smoke-test.yaml
+    with:
+      image_ref: ${{ needs.build.outputs.image_ref }}
+      role_to_assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+      aws_region: us-east-1
+
+  gitops-update:
+    name: GitOps Update
+    needs: [build, smoke-test]
+    uses: ./.github/workflows/reusable-gitops-update.yaml
+    with:
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      gitops_repo: durgax04/ops.git
+    secrets:
+      PAT: ${{ secrets.PAT }}
+      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+
+  deploy:
+    name: Deploy
+    needs: [build, gitops-update]
+    uses: ./.github/workflows/reusable-deploy-verify.yaml
+    with:
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      role_to_assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+      aws_region: us-east-1
+      cluster_name: ${{ vars.EKS_CLUSTER_NAME || 'pdfchatapp-cluster' }}

@@ -1,0 +1,52 @@
+name: Reusable GitOps Update
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      gitops_repo:
+        required: false
+        type: string
+        default: "durgax04/ops.git"
+    secrets:
+      PAT:
+        required: true
+      ECR_REGISTRY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  gitops-update:
+    name: GitOps Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone GitOps repository
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git clone "https://${PAT}@github.com/${{ inputs.gitops_repo }}" ops-repo
+
+      - name: Update manifest & push
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          PAT: ${{ secrets.PAT }}
+        run: |
+          cd ops-repo/pdfchatapp
+          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/app:${IMAGE_TAG}|" deployment.yml
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add deployment.yml
+          if git diff --cached --quiet; then
+            echo "No change — image already up to date"
+            exit 0
+          fi
+
+          git commit -m "Update pdfchatapp image to $IMAGE_TAG"
+          git push "https://${PAT}@github.com/${{ inputs.gitops_repo }}" HEAD:master

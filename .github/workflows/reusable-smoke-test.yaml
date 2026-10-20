@@ -1,60 +1,40 @@
-name: 02 - Smoke Test
+name: Reusable Smoke Test
 
 on:
-  workflow_run:
-    workflows: ["01 - Build"]
-    types: [completed]
-  workflow_dispatch:
+  workflow_call:
     inputs:
       image_ref:
-        description: "Full image ref to test (e.g., <registry>/gigax01/app:<sha>)"
         required: true
+        type: string
+      role_to_assume:
+        required: true
+        type: string
+      aws_region:
+        required: false
+        type: string
+        default: "us-east-1"
 
 permissions:
   id-token: write
   contents: read
-  actions: read
 
 jobs:
   smoke-test:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    name: Smoke Test
     runs-on: ubuntu-latest
     steps:
-      - name: Download build metadata
-        if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: build-meta
-          path: meta
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Resolve image ref
-        id: resolve
-        run: |
-          if [ -n "${{ inputs.image_ref }}" ]; then
-            REF="${{ inputs.image_ref }}"
-          elif [ -f meta/image-ref.txt ]; then
-            REF=$(cat meta/image-ref.txt)
-          else
-            echo "::error::No image reference could be resolved."
-            exit 1
-          fi
-          echo "ref=$REF" >> "$GITHUB_OUTPUT"
-          echo "Testing image: $REF"
-
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+          role-to-assume: ${{ inputs.role_to_assume }}
           role-session-name: GitHubActionsSmokeTest
-          aws-region: us-east-1
+          aws-region: ${{ inputs.aws_region }}
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Pull image
-        run: docker pull "${{ steps.resolve.outputs.ref }}"
+        run: docker pull "${{ inputs.image_ref }}"
 
       - name: Start container
         run: |
@@ -62,7 +42,7 @@ jobs:
             --name smoke-app \
             -p 3000:3000 \
             -e NODE_ENV=production \
-            "${{ steps.resolve.outputs.ref }}"
+            "${{ inputs.image_ref }}"
 
       - name: Smoke test (/live and /ready)
         run: |

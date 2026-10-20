@@ -1,9 +1,20 @@
-name: 01 - Build
+name: Reusable Build
 
 on:
-  push:
-    branches: [master]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      role_to_assume:
+        required: true
+        type: string
+      aws_region:
+        required: false
+        type: string
+        default: "us-east-1"
+    outputs:
+      image_tag:
+        value: ${{ jobs.build.outputs.image_tag }}
+      image_ref:
+        value: ${{ jobs.build.outputs.image_ref }}
 
 permissions:
   id-token: write
@@ -11,7 +22,11 @@ permissions:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-meta.outputs.image_tag }}
+      image_ref: ${{ steps.set-meta.outputs.image_ref }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,9 +34,9 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+          role-to-assume: ${{ inputs.role_to_assume }}
           role-session-name: GitHubActionsECRPush
-          aws-region: us-east-1
+          aws-region: ${{ inputs.aws_region }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -40,16 +55,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Emit image reference for downstream workflows
-      - name: Write build metadata
+      - name: Set outputs
+        id: set-meta
         run: |
-          mkdir -p meta
-          echo "${{ github.sha }}" > meta/image-tag.txt
-          echo "${{ steps.login-ecr.outputs.registry }}/gigax01/app:${{ github.sha }}" > meta/image-ref.txt
-
-      - name: Upload build metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-meta
-          path: meta/
-          retention-days: 7
+          echo "image_tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "image_ref=${{ steps.login-ecr.outputs.registry }}/gigax01/app:${{ github.sha }}" >> "$GITHUB_OUTPUT"
