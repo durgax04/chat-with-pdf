@@ -31,8 +31,12 @@ turns PDF documents into searchable context for AI-generated responses.
   - [GitOps with Argo CD](#gitops-with-argo-cd)
 
 ---
+## Documentation
 
-## Engineering Highlights
+- [Security Hardening & Architecture Improvements (File Uploading via Presigned URL)](./doc/improvements_architecture_report_oct18_26.md)
+- [Migrating from Long-Lived AWS Credentials to OpenID Connect (OIDC)](./doc/migrating_from_Long-Lived_credential_to_OIDC.md)
+
+## Architecture Highlights
 
 -   **Direct document uploads:** Browser uploads to Amazon S3 using
     presigned URLs, avoiding the need to send PDF payloads through the
@@ -108,7 +112,7 @@ The retrieval workflow:
 ## Deployment and GitOps
 
 ops repo:
-[github.com/durgax04/ops](https://github.com/durgax04/ops)
+[github.com/durgax04/ops](https://github.com/durgax04/ops/tree/master/pdfchatapp)
 
 ![Deployment](./doc/images/deployment.png)
 

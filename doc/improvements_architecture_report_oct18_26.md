@@ -1,10 +1,10 @@
-# Chat with PDF: Security Hardening & Architecture Improvements
+# Security Hardening & Architecture Improvements(file uploding using presigned URL)
 
 This document outlines the end-to-end architectural, security, and user experience enhancements implemented in the **Chat with PDF** application. It serves as a technical record of migration from overly permissive infrastructure and public S3 buckets to an enterprise-grade, least-privilege, and memory-efficient design.
 
 ---
 
-## 1. Executive Summary of Improvements
+## 1. Objectives and Security Improvements
 
 | Domain | Previous State | Upgraded State |
 | :--- | :--- | :--- |
