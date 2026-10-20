@@ -35,6 +35,7 @@ jobs:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           IMAGE_TAG: ${{ inputs.image_tag }}
           PAT: ${{ secrets.PAT }}
+          GIT_TERMINAL_PROMPT: "0"
         run: |
           cd ops-repo/pdfchatapp
           sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/app:${IMAGE_TAG}|" deployment.yml
@@ -49,4 +50,9 @@ jobs:
           fi
 
           git commit -m "Update pdfchatapp image to $IMAGE_TAG"
-          git push "https://${PAT}@github.com/${{ inputs.gitops_repo }}" HEAD:master
+
+          # Use a credential helper instead of embedding the PAT in the URL
+          git config credential.helper '!f() { test "$1" = get && echo "username=x-access-token" && echo "password=${PAT}"; }; f'
+
+          # Use the plain URL for push (no token embedded)
+          git push "https://github.com/${{ inputs.gitops_repo }}" HEAD:master
