@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write # for oidc
+      id-token: write # for oidc AWS
       contents: read
 
     steps:
