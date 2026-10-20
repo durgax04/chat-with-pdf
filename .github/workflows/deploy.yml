@@ -3,33 +3,30 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write # AWS OIDC
+      id-token: write # for oidc
       contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: true
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -71,21 +68,14 @@ jobs:
           PAT: ${{ secrets.PAT }}
         run: |
           cd ops/pdfchatapp
-          
-          # Verify the file exists before running sed
-          ls -la deployment.yml
-          
-          # Update the image tag (using | delimiter to avoid issues with slashes in URLs)
-          sed -i "s|image: .*|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}|" deployment.yml
+          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}|" deployment.yml
           
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           
-          # Check if the file actually changed to prevent commit errors
-          git diff --quiet deployment.yml && echo "No changes made" && exit 0
-          
           git add deployment.yml
           git commit -m "Update pdfchatapp image to $IMAGE_TAG"
+
           git push https://${PAT}@github.com/durgax04/ops.git HEAD:master
 
       - name: Deployment Triggered
