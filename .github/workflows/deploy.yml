@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build_and_deploy:
@@ -86,7 +86,7 @@ jobs:
           
           git add deployment.yml
           git commit -m "Update pdfchatapp image to $IMAGE_TAG"
-          git push https://${PAT}@github.com/durgax04/ops.git HEAD:main
+          git push https://${PAT}@github.com/durgax04/ops.git HEAD:master
 
       - name: Deployment Triggered
         run: |
