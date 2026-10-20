@@ -1,0 +1,111 @@
+name: 04 - Deploy Verify
+
+on:
+  workflow_run:
+    workflows: ["03 - GitOps Update"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag (SHA) to verify"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download deploy metadata
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-meta
+          path: deploy-meta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve target image tag
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            TAG="${{ inputs.image_tag }}"
+          elif [ -f deploy-meta/deployed-tag.txt ]; then
+            TAG=$(cat deploy-meta/deployed-tag.txt)
+          else
+            echo "::error::Target deployment tag could not be found."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Verifying deployment for tag: $TAG"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+          role-session-name: GitHubActionsDeployVerify
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        env:
+          CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME || 'pdfchatapp-cluster' }}
+        run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region us-east-1
+
+      # Prevents false positive if ArgoCD hasn't synced the new commit yet
+      - name: Wait for ArgoCD to sync new image
+        env:
+          TARGET_TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          echo "Waiting for deployment/pdfchatapp to update image to tag: $TARGET_TAG"
+          MAX_RETRIES=60
+          RETRY_COUNT=0
+
+          until [ $RETRY_COUNT -ge $MAX_RETRIES ]; do
+            CURRENT_IMAGE=$(kubectl -n pdfchatapp get deployment pdfchatapp -o jsonpath='{.spec.template.spec.containers[0].image}')
+            echo "Attempt $((RETRY_COUNT+1))/$MAX_RETRIES: Current image in cluster is '$CURRENT_IMAGE'"
+
+            if [[ "$CURRENT_IMAGE" == *":$TARGET_TAG" ]]; then
+              echo "ArgoCD has synced the new manifest."
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            sleep 5
+          done
+
+          echo "::error::Timed out waiting for Argo CD to pick up image tag $TARGET_TAG"
+          exit 1
+
+      - name: Wait for rollout completion
+        run: |
+          kubectl -n pdfchatapp rollout status deployment/pdfchatapp --timeout=300s
+
+      - name: Port-forward & verify endpoints
+        run: |
+          kubectl -n pdfchatapp port-forward svc/pdfchatapp 3000:3000 &
+          PF_PID=$!
+          trap "kill $PF_PID 2>/dev/null || true" EXIT
+
+          echo "Waiting for port-forward and service endpoints..."
+          MAX_RETRIES=15
+          RETRY_COUNT=0
+
+          until [ $RETRY_COUNT -ge $MAX_RETRIES ]; do
+            LIVE_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health/live || true)
+            READY_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health/ready || true)
+
+            if [ "$LIVE_CODE" = "200" ] && [ "$READY_CODE" = "200" ]; then
+              echo "In-cluster endpoints verified successfully!"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            sleep 2
+          done
+
+          echo "::error::Live/Ready health checks failed via port-forward."
+          exit 1

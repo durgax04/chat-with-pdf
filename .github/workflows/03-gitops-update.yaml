@@ -1,0 +1,88 @@
+name: 03 - GitOps Update
+
+on:
+  workflow_run:
+    workflows: ["02 - Smoke Test"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag (SHA) to deploy"
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  gitops:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build metadata
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: build-meta
+          path: meta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image tag
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            TAG="${{ inputs.image_tag }}"
+          elif [ -f meta/image-tag.txt ]; then
+            TAG=$(cat meta/image-tag.txt)
+          else
+            echo "::error::No image tag provided or found in metadata."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Deploying tag: $TAG"
+
+      - name: Clone GitOps repository
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git clone https://${PAT}@github.com/durgax04/ops.git
+
+      - name: Update manifest & push
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: ${{ steps.resolve.outputs.tag }}
+          PAT: ${{ secrets.PAT }}
+        run: |
+          cd ops/pdfchatapp
+          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/app:${IMAGE_TAG}|" deployment.yml
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add deployment.yml
+          if git diff --cached --quiet; then
+            echo "No change — image already up to date"
+            exit 0
+          fi
+
+          git commit -m "Update pdfchatapp image to $IMAGE_TAG"
+          git push https://${PAT}@github.com/durgax04/ops.git HEAD:master
+
+      # Pass verified tag forward to 04-deploy-verify
+      - name: Save deploy metadata
+        run: |
+          mkdir -p deploy-meta
+          echo "${{ steps.resolve.outputs.tag }}" > deploy-meta/deployed-tag.txt
+
+      - name: Upload deploy metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-meta
+          path: deploy-meta/
+          retention-days: 1
+
+      - name: Summary
+        run: |
+          echo "GitOps repository updated with image tag: ${{ steps.resolve.outputs.tag }}"
+          echo "Argo CD will detect the commit and trigger rollout."

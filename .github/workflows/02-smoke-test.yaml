@@ -1,0 +1,94 @@
+name: 02 - Smoke Test
+
+on:
+  workflow_run:
+    workflows: ["01 - Build"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_ref:
+        description: "Full image ref to test (e.g., <registry>/gigax01/app:<sha>)"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  smoke-test:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build metadata
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: build-meta
+          path: meta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image ref
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.image_ref }}" ]; then
+            REF="${{ inputs.image_ref }}"
+          elif [ -f meta/image-ref.txt ]; then
+            REF=$(cat meta/image-ref.txt)
+          else
+            echo "::error::No image reference could be resolved."
+            exit 1
+          fi
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "Testing image: $REF"
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::469511672970:role/github-actions-ecr-deploy-role
+          role-session-name: GitHubActionsSmokeTest
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Pull image
+        run: docker pull "${{ steps.resolve.outputs.ref }}"
+
+      - name: Start container
+        run: |
+          docker run -d \
+            --name smoke-app \
+            -p 3000:3000 \
+            -e NODE_ENV=production \
+            "${{ steps.resolve.outputs.ref }}"
+
+      - name: Smoke test (/live and /ready)
+        run: |
+          echo "Waiting for container endpoints to respond with HTTP 200..."
+          MAX_RETRIES=30
+          RETRY_COUNT=0
+
+          until [ $RETRY_COUNT -ge $MAX_RETRIES ]; do
+            LIVE_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health/live || true)
+            READY_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health/ready || true)
+
+            echo "Attempt $((RETRY_COUNT+1))/$MAX_RETRIES -> /live: $LIVE_CODE, /ready: $READY_CODE"
+
+            if [ "$LIVE_CODE" = "200" ] && [ "$READY_CODE" = "200" ]; then
+              echo "Smoke tests passed!"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            sleep 2
+          done
+
+          echo "::error::Smoke test failed. Outputting container logs:"
+          docker logs smoke-app
+          exit 1
+
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f smoke-app || true
