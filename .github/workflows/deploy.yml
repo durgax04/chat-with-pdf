@@ -31,13 +31,6 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Debug OIDC Subject
-        run: |
-          TOKEN=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
-          echo "Actual sub claim:"
-          echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub'
-
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -75,7 +68,7 @@ jobs:
           PAT: ${{ secrets.PAT }}
         run: |
           cd ops/pdfchatapp
-          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/pdfchatapp:${IMAGE_TAG}|" deployment.yml
+          sed -i "s|image: .*$|image: ${ECR_REGISTRY}/gigax01/app:${IMAGE_TAG}|" deployment.yml
           
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
