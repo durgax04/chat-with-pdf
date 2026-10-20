@@ -77,7 +77,7 @@ jobs:
           git commit -m "Update pdfchatapp image to $IMAGE_TAG"
 
           git remote set-url origin https://${PAT}@github.com/durgax04/ops.git
-          git push origin HEAD:main
+          git push origin HEAD:master
 
       - name: Deployment Triggered
         run: |
