@@ -74,7 +74,34 @@ The workflow:
     embedding for each chunk.
 7.  The vectors and associated metadata are upserted into Pinecone.
 
-### 2. Retrieval and Generation
+### Database Schema
+![Schema](./doc/images/4.png)
+## Database Relationships
+
+### 1. User → File
+
+**Relationship:** One-to-Many (1:N)
+
+- One user can upload multiple files.
+- Each file belongs to exactly one user through `File.userId`.
+
+### 2. File → Message
+
+**Relationship:** One-to-Many (1:N)
+
+- A file can have multiple messages.
+- Each message must reference one file through `Message.fileId`.
+- Deleting a file cascades to its associated messages (`onDelete: Cascade`).
+
+### 3. User → Message
+
+**Relationship:** Optional One-to-Many (1:N)
+
+- A user can have multiple messages.
+- `Message.userId` is nullable, so a message can exist without an associated user.
+- When a `userId` is provided, it references `User.id`.
+
+### Retrieval and Generation
 ![Retrieval and Generation](./doc/images/RetrievalandGeneration.png)
 
 
