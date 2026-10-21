@@ -6,3 +6,10 @@ export enum UploadStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
 }
+
+export type ExtendedUploadState =
+  | "idle"
+  | "uploading"
+  | "preparing"
+  | "success"
+  | "error";

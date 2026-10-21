@@ -1,16 +1,37 @@
+import { authOptions } from "@/lib/auth/authOptions";
 import { bedrock } from "@/lib/bedrock";
 import { db } from "@/lib/prisma";
 import { retrieverContext } from "@/lib/retriever";
 import { AskRequest, MessageRole } from "@/types/chat";
+import { API_ERRORS } from "@/constants/errors_chat";
 import { InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+      return NextResponse.json(API_ERRORS.UNAUTHORIZED, { status: 401 });
+    }
+
+    const dbUser = await db.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json(API_ERRORS.USER_NOT_FOUND, { status: 404 });
+    }
+
+    // Enforce the 4-message limit restriction
+    if (dbUser.messageCount >= 4) {
+      return NextResponse.json(API_ERRORS.MESSAGE_LIMIT_REACHED, { status: 429 });
+    }
+
     const { fileId, question }: AskRequest = await req.json();
 
     if (!fileId || !question) {
-      return NextResponse.json({ error: "Missing params" }, { status: 400 });
+      return NextResponse.json(API_ERRORS.MISSING_PARAMS, { status: 400 });
     }
 
     await db.message.create({
@@ -23,34 +44,34 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // retrieve PDF context
+    // Retrieve PDF context
     const context = await retrieverContext(question, fileId);
+    const model_Id = process.env.MODEL_ID;
 
-    // use arn
-    // Can't directly invoke nova text&vision model
-    const model_Id = process.env.MODEL_ID!;
+    if (!model_Id) {
+      throw new Error("MODEL_ID environment variable is missing.");
+    }
 
-    // Model request format (doesn't support role system)
     const prompt = `
-You are a helpful assistant that answers questions based ONLY on the provided PDF context.
+      You are a helpful assistant that answers questions based ONLY on the provided PDF context.
 
-Guidelines:
-- Answer in a natural, human-friendly way like ChatGPT
-- Use simple and clear language
-- Use short paragraphs
-- Avoid excessive markdown like ** or unnecessary bullet points
-- Use bullet points only if they improve clarity
-- Keep the answer concise but informative
-- If the answer is not in the context, say: "I couldn't find this information in the provided document."
+      Guidelines:
+      - Answer in a natural, human-friendly way like ChatGPT
+      - Use simple and clear language
+      - Use short paragraphs
+      - Avoid excessive markdown like ** or unnecessary bullet points
+      - Use bullet points only if they improve clarity
+      - Keep the answer concise but informative
+      - If the answer is not in the context, say: "I couldn't find this information in the provided document."
 
-Context:
-${context}
+      Context:
+      ${context}
 
-Question:
-${question}
+      Question:
+      ${question}
 
-Answer:
-`.trim();
+      Answer:
+    `.trim();
 
     const bodyPayload = {
       messages: [
@@ -61,7 +82,7 @@ Answer:
       ],
       inferenceConfig: {
         maxTokens: 512,
-        temperature: 0.3, // slightly more natural
+        temperature: 0.3,
       },
     };
 
@@ -73,34 +94,49 @@ Answer:
     });
 
     const response = await bedrock.send(command);
+    
+    if (!response.body) {
+      throw new Error("Empty response body received from Bedrock runtime.");
+    }
+
     const responseBody = await new Response(response.body).text();
     const parsed = JSON.parse(responseBody);
-    // console.log("Answer content----", parsed.output?.message?.content);
 
-    // extract answer
-    // const answer = parsed.output?.message?.content?.[0]?.text ?? "No answer found";
     const answer =
       parsed.output?.message?.content
         ?.map((c: any) => c.text)
         .join(" ")
         .trim() || "No answer found";
 
-    // console.log("Answer----", answer);
-    // console.log(JSON.stringify(answer, null, 2));
-
-    await db.message.create({
-      data: {
-        fileId,
-        text: answer,
-        role: MessageRole.SYSTEM,
-        content: answer,
-        isUser: false,
-      },
-    });
+    // Save system message AND increment user's messageCount atomically
+    await db.$transaction([
+      db.message.create({
+        data: {
+          fileId,
+          text: answer,
+          role: MessageRole.SYSTEM,
+          content: answer,
+          isUser: false,
+        },
+      }),
+      db.user.update({
+        where: { email: session.user.email },
+        data: {
+          messageCount: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
 
     return NextResponse.json({ answer });
-  } catch (error) {
-    console.error("Error in chat route-----", error);
-    return NextResponse.json({ error: "Chat failed" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[API_CHAT_ERROR]", {
+      message: error?.message || "Unknown error",
+      stack: error?.stack,
+      timestamp: new Date().toISOString(),
+    });
+
+    return NextResponse.json(API_ERRORS.CHAT_FAILED, { status: 500 });
   }
 }

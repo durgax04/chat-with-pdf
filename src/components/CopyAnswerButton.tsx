@@ -5,7 +5,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ClipboardIcon, ClipboardCheckIcon } from "lucide-react";
-import { useCopyToClipboard } from "./Chat/hooks/use-copy-to-clipboard";
+import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 
 type CopyAnswerButtonProps = {
   content: string;

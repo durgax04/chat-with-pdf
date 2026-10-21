@@ -6,6 +6,8 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { db } from "../prisma";
 import { getUserSession } from "../auth/session";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/authOptions";
 
 interface SignedUrlInput {
   name: string;
@@ -65,3 +67,26 @@ export const getSignedURL = async ({ name, type, size }: SignedUrlInput) => {
     },
   };
 };
+export async function getUserUploadCount() {
+  
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.email) {
+    return { count: 0, error: "Unauthorized" };
+  }
+
+  const dbUser = await db.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  });
+
+  if (!dbUser) {
+    return { count: 0, error: "User not found" };
+  }
+
+  // Count the actual files belonging to this user in the database
+  const fileCount = await db.file.count({
+    where: { userId: dbUser.id }, // Make sure your File model relates to user via userId
+  });
+
+  return { count: fileCount, error: null };
+}

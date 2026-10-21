@@ -11,8 +11,11 @@ import { UploadStatus } from "@/types/upload";
 import { s3 } from "@/lib/s3";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
+import { authOptions } from "@/lib/auth/authOptions";
+import { getServerSession } from "next-auth";
+import { API_ERRORS } from "@/constants/errors_process_pdf";
+import { logApiError } from "@/lib/logger";
 
-// Helper to convert AWS SDK stream to Buffer
 async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) {
@@ -26,24 +29,60 @@ export async function POST(req: NextRequest) {
   let tempPath: string | undefined;
 
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+      return NextResponse.json(API_ERRORS.UNAUTHORIZED, { status: 401 });
+    }
+
     const body = await req.json();
     fileId = body.fileId;
 
     if (!fileId) {
-      return NextResponse.json({ error: "Missing fileId" }, { status: 400 });
+      return NextResponse.json(API_ERRORS.MISSING_PARAMS, { status: 400 });
+    }
+
+    // Fetch user first to link file ownership verification
+    const dbUser = await db.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json(API_ERRORS.USER_NOT_FOUND, { status: 404 });
     }
 
     const file = await db.file.findUnique({
-      where: { id: fileId },
+      where: { 
+        id: fileId,
+        userId: dbUser.id, // Secures multi-tenancy isolation
+      },
     });
 
     if (!file) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
+      return NextResponse.json(API_ERRORS.FILE_NOT_FOUND, { status: 404 });
     }
 
-    // 1. Fetch directly from S3 using IAM credentials (No public access needed)
-    // Assumes file.key exists in DB, or extract the key from the stored URL
-    const bucket = process.env.AWS_S3_BUCKET!;
+    // Atomically increment counter while enforcing the limit rule
+    const updateResult = await db.user.updateMany({
+      where: {
+        id: dbUser.id,
+        pdfUploadCount: { lt: 2 },
+      },
+      data: {
+        pdfUploadCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    if (updateResult.count === 0) {
+      return NextResponse.json(API_ERRORS.UPLOAD_LIMIT_REACHED, { status: 429 });
+    }
+
+    const bucket = process.env.AWS_S3_BUCKET;
+    if (!bucket) {
+      throw new Error("AWS_S3_BUCKET environment variable is missing.");
+    }
+
     const s3Key = file.key || new URL(file.url).pathname.replace(/^\/+/, "");
 
     const s3Response = await s3.send(
@@ -59,11 +98,9 @@ export async function POST(req: NextRequest) {
 
     const buffer = await streamToBuffer(s3Response.Body as Readable);
 
-    // 2. Write to /tmp for parsing
     tempPath = path.join("/tmp", `${fileId}.pdf`);
     await fs.writeFile(tempPath, buffer);
 
-    // 3. Extract and split text
     const loader = new PDFLoader(tempPath);
     const docs = await loader.load();
 
@@ -73,9 +110,7 @@ export async function POST(req: NextRequest) {
     });
 
     const chunks = await splitter.splitDocuments(docs);
-    console.log("Total chunks:", chunks.length);
 
-    // 4. Ingest embeddings into Pinecone
     const pinecone = await getPineconeClient();
     const pineconeIndex = pinecone.Index("chat-pdf");
 
@@ -84,26 +119,24 @@ export async function POST(req: NextRequest) {
       namespace: fileId,
     });
 
-    // 5. Mark as ready
     await db.file.update({
       where: { id: fileId },
       data: { uploadStatus: UploadStatus.SUCCESS },
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error in process-pdf:", error);
+  } catch (error: any) {
+    logApiError("PROCESS_PDF_ROUTE", error);
 
     if (fileId) {
       await db.file.update({
         where: { id: fileId },
         data: { uploadStatus: UploadStatus.FAILED },
-      });
+      }).catch(() => {});
     }
 
-    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+    return NextResponse.json(API_ERRORS.PROCESSING_FAILED, { status: 500 });
   } finally {
-    // 6. Ensure temporary file is deleted even if embedding fails
     if (tempPath) {
       await fs.unlink(tempPath).catch(() => null);
     }

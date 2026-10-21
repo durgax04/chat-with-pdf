@@ -2,11 +2,8 @@ import ChatPageClient from "@/components/Chat/ChatPageClient";
 import { getUserSession } from "@/lib/auth/session";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/prisma";
-import { s3 } from "@/lib/s3";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getPresignedPdfUrl } from "@/lib/s3-utils";
 
-// Separate type for Next.js route params
 interface PageProps {
   params: Promise<{ fileId: string }>;
 }
@@ -27,18 +24,9 @@ export default async function ChatPage({ params }: PageProps) {
     notFound();
   }
 
-  const bucket = process.env.AWS_S3_BUCKET || "app-pdf-storage-v100";
-  const s3Key = decodeURIComponent(
-    new URL(file.url).pathname.replace(/^\/+/, "")
-  );
-
   let presignedPdfUrl = "";
   try {
-    const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: s3Key,
-    });
-    presignedPdfUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
+    presignedPdfUrl = await getPresignedPdfUrl(file.url);
   } catch (error) {
     console.error("Failed to generate presigned URL:", error);
   }
