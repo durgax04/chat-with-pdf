@@ -75,7 +75,7 @@ The workflow:
 7.  The vectors and associated metadata are upserted into Pinecone.
 
 ### Database Schema
-![Schema](./doc/images/4.png)
+![Schema](./doc/images/DB-Schema.png)
 ## Database Relationships
 
 ### 1. User → File
