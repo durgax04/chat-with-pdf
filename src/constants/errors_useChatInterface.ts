@@ -1,4 +1,3 @@
-// types/chat.ts
 export interface MessageProps {
   id: string;
   text: string;
